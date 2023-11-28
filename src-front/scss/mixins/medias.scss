@@ -1,0 +1,21 @@
+/* Media Queries */
+
+$breakpoint-landscape: 1200px;
+$breakpoint-xl: 1100px;
+$breakpoint-large: 950px;
+$breakpoint-small: 800px;
+$breakpoint-xs: 750px;
+$breakpoint-xxs: 600px;
+$breakpoint-mobile: 500px;
+
+@mixin max($width) {
+  @media screen and (max-width: $width) {
+    @content;
+  }
+}
+
+@mixin min($width) {
+  @media screen and (min-width: ($width + 1px)) {
+    @content;
+  }
+}

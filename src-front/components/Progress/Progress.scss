@@ -1,0 +1,66 @@
+.progress {
+    --gutter: 4px;
+    height: 2.5em;
+    background: var(--bg-secondary);
+    border-radius: .6em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 .8em;
+    cursor: wait;
+  
+    span {
+      font-size: .8em;
+    }
+  
+    &Bar {
+      transition: width .6s var(--cubic);
+      position: absolute;
+      inset: var(--gutter);
+      border-radius: .5em;
+      width: 0;
+      max-width: calc(100% - var(--gutter) * 2);
+      overflow: hidden;
+  
+      &::after {
+        content: '';
+        inset: 0;
+        position: absolute;
+        background-color: currentColor;
+        opacity: var(--opacity-secondary);
+        transition: opacity .6s var(--cubic);
+      }
+  
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, transparent, var(--bg-secondary), transparent),
+                    linear-gradient(to right, transparent, var(--bg-secondary), transparent);
+        animation: progressBar 1s infinite linear;
+      }
+  
+      @keyframes progressBar {
+        from {
+          transform: translate(-100%);
+        }
+        to {
+          transform: translate(100%);
+        }
+      }
+    }
+  
+    &Icon {
+      font-size: 1.15em;
+    }
+  
+    &.complete {
+      color: var(--success);
+      --opacity-secondary: .2;
+  
+      *::before {
+        display: none;
+      }
+    }
+  }

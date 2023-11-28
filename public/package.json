@@ -1,0 +1,21 @@
+{
+    "name": "keepix-plugin-smart-node-build",
+    "version": "0.0.30",
+    "dependencies": {},
+    "scripts": {
+        "start": "echo 'hello'"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app",
+            "react-app/jest"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ]
+    }
+}

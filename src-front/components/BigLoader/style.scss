@@ -1,0 +1,68 @@
+.transfer {
+    --padding: calc(50px + 20 * (100vw - 320px) / 1080);
+  
+    .state {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: calc(var(--padding) / 2);
+  
+      &-title {
+        span {
+          font-size: 1.2em;
+        }
+        strong {
+          font-weight: 600;
+          font-family: var(--font-family-heading);
+          font-size: 2em;
+          display: block;
+  
+          iconify-icon {
+            top: .38em;
+          }
+        }
+      }
+  
+      &-logo {
+        width: calc(150px + 50 * (100vw - 320px) / 1080);
+        transition: transform 1s;
+  
+        svg {
+          width: 100%;
+          font-size: .5em;
+          overflow: visible;
+  
+          use {
+            animation: hoveredLogo 2s var(--cubic) infinite;
+          }
+  
+          @keyframes hoveredLogo {
+            from {
+              transform: translateY(0%)
+            }
+            25% {
+              transform: translateY(-20%)
+            }
+            50% {
+              transform: translateY(0%)
+            }
+          }
+        }
+      }
+    }
+  
+    &.DONE {
+      .state {
+        &-logo {
+          color: var(--success);
+          transform: scale(.9);
+  
+          use {
+            animation: none;
+          }
+        }
+      }
+    }
+}

@@ -1,0 +1,14 @@
+:root {
+  --font-family-main: "Satoshi";
+  --font-family-heading: "ClashDisplay";
+}
+
+@font-face {
+  font-family: "ClashDisplay";
+  src: url("../fonts/clashdisplay/ClashDisplay-Variable.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("../fonts/satoshi/Satoshi-Variable.woff2") format("woff2");
+}

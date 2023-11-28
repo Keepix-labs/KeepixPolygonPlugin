@@ -1,0 +1,29 @@
+.Sprites {
+  &-sprite {
+    width: 0;
+    height: 0;
+    opacity: 0;
+
+    * {
+      stroke: currentColor;
+      stroke-width: 1em;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+    }
+  }
+
+  &-fill {
+    &Primary {
+      fill: var(--bg-body);
+    }
+
+    &Secondary {
+      fill: currentColor;
+    }
+  }
+
+  &-noStroke {
+    stroke: transparent;
+    stroke-width: 0;
+  }
+}

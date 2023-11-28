@@ -1,0 +1,23 @@
+.BannerAlert {
+  &-main {
+    background-color: rgba(
+      var(--color, var(--bg-primary-rgb)) / var(--opacity-primary)
+    );
+    text-align: center;
+    padding: 1.15em;
+    border-radius: 0.85em;
+    gap: 0.65em;
+    display: flex;
+    align-items: center;
+    color: rgb(var(--color));
+
+    .iconify {
+      transform: scale(1.2);
+      opacity: 0.5;
+    }
+
+    span {
+      font-size: 0.9em;
+    }
+  }
+}

@@ -1,0 +1,22 @@
+.Logo {
+  &-logo {
+    display: flex;
+    align-items: center;
+
+    &Sigle {
+      transition: width var(--transition-fix);
+      width: 4em;
+      overflow: visible;
+      stroke: white;
+      stroke-width: 1em;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10;
+    }
+
+    &Txt {
+      height: 1.8em;
+      margin-left: 1.25em;
+      fill: currentColor;
+    }
+  }
+}

@@ -1,0 +1,28 @@
+.Loader {
+  background-color: rgba(var(--bg-secondary-rgb) / var(--opacity-secondary));
+  text-align: center;
+  padding: 1.15em;
+  border-radius: 0.85em;
+  gap: 0.65em;
+  display: flex;
+  align-items: center;
+  cursor: wait;
+
+  span {
+    font-size: 0.9em;
+    color: var(--txt-secondary);
+    animation: loadingTxt 1s infinite linear;
+  }
+
+  @keyframes loadingTxt {
+    from {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.2;
+    }
+  }
+}

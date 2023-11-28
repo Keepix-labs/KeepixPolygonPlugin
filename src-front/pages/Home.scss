@@ -1,0 +1,50 @@
+@mixin styleTd {
+    transition: background-color 0.2s;
+    background-color: var(--bg-secondary);
+    padding: calc(var(--padding) / 1.25) calc(var(--padding) / 2);
+}
+
+.home-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 5px;
+}
+
+.home-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 5px;
+}
+
+.home-row-full {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    column-gap: 5px;
+    overflow: scroll;
+}
+
+.AppBase-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--marge-grid);
+}
+
+@media screen and (max-width: 1000px) {
+    .home-row-3 {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        column-gap: 5px;
+        row-gap: calc(var(--padding) / 1.5);
+    }
+
+    sup {
+        display: none;
+    }
+    
+    .home-row-2 {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        column-gap: 5px;
+        row-gap: calc(var(--padding) / 1.5);
+    }
+}

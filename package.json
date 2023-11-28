@@ -1,0 +1,81 @@
+{
+  "name": "keepix-polygon-plugin",
+  "version": "0.0.19",
+  "dependencies": {
+    "@iconify-icon/react": "^1.0.8",
+    "@tanstack/react-query": "^5.8.1",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.59",
+    "@types/react": "^18.2.33",
+    "@types/react-dom": "^18.2.14",
+    "chart.js": "^4.4.0",
+    "copy-text-to-clipboard": "^3.2.0",
+    "increase-build-package-public-directory": "^0.0.3",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "react-iframe": "^1.8.5",
+    "react-router-dom": "^6.17.0",
+    "react-scripts": "5.0.1",
+    "sass": "^1.69.5",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4",
+    "web3": "^4.2.2"
+  },
+  "scripts": {
+    "start": "npm run p-build-debug && react-app-rewired start",
+    "dev": "npm run p-build-debug && REACT_APP_API_URL=http://192.168.1.22:2001 react-app-rewired start",
+    "start-without-front": "npm run p-build-debug && node -e \"const { paths } = require('./config-overrides.js'); paths({});\" start.js",
+    "increase-build-version": "increase-build-package-public-directory && increase-build-package-public-directory public",
+    "prebuild": "node increment-version.js",
+    "build": "PUBLIC_URL=/plugins/keepix-polygon-plugin/view react-app-rewired build && npm run p-build-all",
+    "publish": "cd build && npm publish",
+    "test": "react-app-rewired test",
+    "test-executables": "mocha --timeout 30000",
+    "eject": "react-app-rewired eject",
+    "p-build-debug": "cd plugin/ && go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/keepix-polygon-plugin",
+    "p-build-release-osx-x64": "cd plugin/ && GOOS=darwin GOARCH=amd64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/osx-x64/keepix-polygon-plugin",
+    "p-build-release-osx-arm64": "cd plugin/ && GOOS=darwin GOARCH=arm64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/osx-arm64/keepix-polygon-plugin",
+    "p-build-release-linux-x64": "cd plugin/ && GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/linux-x64/keepix-polygon-plugin",
+    "p-build-release-linux-arm64": "cd plugin/ && GOOS=linux GOARCH=arm64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/linux-arm64/keepix-polygon-plugin",
+    "p-build-release-win-x64": "cd plugin/ && GOOS=windows GOARCH=amd64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/win-x64/keepix-polygon-plugin.exe",
+    "p-build-release-win-arm64": "cd plugin/ && GOOS=windows GOARCH=arm64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/win-arm64/keepix-polygon-plugin.exe",
+    "p-build-all": "npm run p-build-release-osx-x64 && npm run p-build-release-osx-arm64 && npm run p-build-release-linux-x64 && npm run p-build-release-linux-arm64 && npm run p-build-release-win-x64 && npm run p-build-release-win-arm64"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "files": [
+    "index.js",
+    "bin"
+  ],
+  "devDependencies": {
+    "@faker-js/faker": "^8.2.0",
+    "@iconify/react": "^4.1.1",
+    "@types/chroma-js": "^2.4.3",
+    "chai": "^4.3.10",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "http": "^0.0.1-security",
+    "mocha": "^10.2.0",
+    "react-app-rewired": "^2.2.1"
+  }
+}
