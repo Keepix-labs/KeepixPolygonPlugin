@@ -2,6 +2,8 @@ const { expect } = require('chai');
 const { exec } = require('child_process');
 const os = require('os');
 const util = require('util');
+const path = require('path');
+const fs = require('fs');
 const execAsync = util.promisify(exec);
 
 function getExecutablePath() {
@@ -32,10 +34,38 @@ async function execute(jsonInput) {
     return JSON.parse(stdout);
 }
 
+function checkLocalPackageVersion() {
+    try {
+        // Construct the path to the package.json file
+        const packageJsonPath = path.join(__dirname, '../package.json');
+
+        // Check if package.json exists
+        if (!fs.existsSync(packageJsonPath)) {
+            console.error('package.json not found in the current directory');
+            return;
+        }
+
+        // Load the package.json file
+        const packageJson = require(packageJsonPath);
+
+        // Return the version number
+        return packageJson.version;
+    } catch (error) {
+        console.error('An error occurred:', error);
+    }
+}
+
 describe('KeepixPolygonPlugin', function() {
     
     before(async function() {
         await enableExecutable();
+    });
+
+    it('should be able to report version', async function() {
+        const executablePath = getExecutablePath();
+        const {stdout} = await execAsync(`${executablePath} --version`);
+        const packageVersion = checkLocalPackageVersion();
+        expect(stdout).to.equal('"' + packageVersion + '"');
     });
 
     it('should be able to install', async function() {
@@ -50,7 +80,6 @@ describe('KeepixPolygonPlugin', function() {
 
     it('should be able to report status', async function() {
         const result = await execute({"key":"status"});
-        console.log(result)
         expect(result.jsonResult).to.equal(true);
     });
 

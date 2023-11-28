@@ -23,14 +23,14 @@ var version string
 func main() {
 	if len(os.Args) >= 2 {
 		if os.Args[1] == "--version" {
-			fmt.Println(version)
-			os.Exit(1)
+			fmt.Print(version)
+			os.Exit(0)
 		}
 	}
 	appResult, err := App()
 	if err != nil {
-		fmt.Println("Error running the application:", err)
-		return
+		fmt.Print("Error running the application:", err)
+		os.Exit(1)
 	}
 
 	// Convert the result to JSON
