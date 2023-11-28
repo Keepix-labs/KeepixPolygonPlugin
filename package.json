@@ -1,6 +1,6 @@
 {
   "name": "keepix-polygon-plugin",
-  "version": "0.0.19",
+  "version": "0.0.22",
   "dependencies": {
     "@iconify-icon/react": "^1.0.8",
     "@tanstack/react-query": "^5.8.1",
@@ -27,11 +27,11 @@
   },
   "scripts": {
     "start": "npm run p-build-debug && react-app-rewired start",
-    "dev": "npm run p-build-debug && REACT_APP_API_URL=http://192.168.1.22:2001 react-app-rewired start",
+    "dev": "npm run p-build-debug && cross-env REACT_APP_API_URL=http://192.168.1.22:2001 react-app-rewired start",
     "start-without-front": "npm run p-build-debug && node -e \"const { paths } = require('./config-overrides.js'); paths({});\" start.js",
     "increase-build-version": "increase-build-package-public-directory && increase-build-package-public-directory public",
     "prebuild": "node increment-version.js",
-    "build": "PUBLIC_URL=/plugins/keepix-polygon-plugin/view react-app-rewired build && npm run p-build-all",
+    "build": "cross-env  PUBLIC_URL=/plugins/keepix-polygon-plugin/view react-app-rewired build && npm run p-build-all",
     "publish": "cd build && npm publish",
     "test": "react-app-rewired test",
     "test-executables": "mocha --timeout 30000",
@@ -73,6 +73,7 @@
     "@types/chroma-js": "^2.4.3",
     "chai": "^4.3.10",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "express": "^4.18.2",
     "http": "^0.0.1-security",
     "mocha": "^10.2.0",
