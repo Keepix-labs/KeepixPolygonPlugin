@@ -18,6 +18,8 @@ var SystemRequirements = map[string]RequirementFunc{
 	"installed":   CheckInstalled,
 	"uninstalled": CheckUninstalled,
 	"cpu4":        CheckHas4CPU,
+	"stopped":     CheckStopped,
+	"running":     CheckRunning,
 }
 
 func CheckDockerExists() bool {
@@ -41,11 +43,19 @@ func CheckWSL2() bool {
 }
 
 func CheckInstalled() bool {
-	return appstate.CurrentState > appstate.ConfiguringNode
+	return appstate.CurrentState >= appstate.NodeInstalled
 }
 
 func CheckUninstalled() bool {
-	return appstate.CurrentState == appstate.NoState
+	return appstate.CurrentState < appstate.NodeInstalled
+}
+
+func CheckStopped() bool {
+	return appstate.CurrentState <= appstate.NodeStarted
+}
+
+func CheckRunning() bool {
+	return appstate.CurrentState == appstate.NodeStarted
 }
 
 func CheckHas4CPU() bool {

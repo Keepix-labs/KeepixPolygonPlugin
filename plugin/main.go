@@ -82,8 +82,7 @@ func Plugin() bool {
 	}
 
 	var input struct {
-		Key  string   `json:"key"`
-		Args []string `json:"args"`
+		Key string `json:"key"`
 	}
 
 	err := appstate.LoadState()
@@ -101,12 +100,29 @@ func Plugin() bool {
 				utils.WriteError("Invalid command")
 				return false
 			} else {
+				// Parse arguments
+				var dataMap map[string]interface{}
+				if err := json.Unmarshal([]byte(os.Args[1]), &dataMap); err != nil {
+					utils.WriteError("Invalid args")
+					return false
+				}
+				var args []string
+				for key, value := range dataMap {
+					// Exclude the specified key
+					if key != "key" {
+						// Convert value to string and add to the array
+						strValue, ok := value.(string)
+						if ok {
+							args = append(args, strValue)
+						}
+					}
+				}
 				validated, missing := tasks.ValidateRequirements(input.Key)
 				if !validated {
 					utils.WriteError("Missing requirements for command: " + strings.Join(missing, ", "))
 					return false
 				} else {
-					return taskFunc(input.Args)
+					return taskFunc(args)
 				}
 			}
 		}

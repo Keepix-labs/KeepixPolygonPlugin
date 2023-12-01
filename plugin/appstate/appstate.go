@@ -8,19 +8,23 @@ import (
 )
 
 // AppStateEnum is a list of possible application states.
-type AppStateEnum string
+type AppStateEnum int
 
 const (
-	NoState         AppStateEnum = "NO_STATE"
-	StartingInstall AppStateEnum = "STARTING_INSTALLATION"
-	InstallingCLI   AppStateEnum = "INSTALLING_CLI"
-	InstallingNode  AppStateEnum = "INSTALLING_NODE"
-	ConfiguringNode AppStateEnum = "CONFIGURING_NODE"
-	StartingNode    AppStateEnum = "STARTING_NODE"
-	NodeRunning     AppStateEnum = "NODE_RUNNING"
-	NodeStopped     AppStateEnum = "NODE_STOPPED"
-	NodeRestarting  AppStateEnum = "NODE_RESTARTING"
-	SetupErrorState AppStateEnum = "SETUP_ERROR_STATE"
+	NoState AppStateEnum = iota
+	SetupErrorState
+	StartingInstall
+	InstallingNode
+	ConfiguringHeimdall
+	ConfiguringBor
+	ConfiguringNetwork
+	NodeInstalled
+	StartingNode
+	StartingHeimdall
+	StartingRestServer
+	StartingBor
+	NodeStarted
+	NodeRestarting
 	// Add new states here...
 )
 
@@ -35,7 +39,7 @@ func UpdateState(newState AppStateEnum) error {
 
 // LoadState loads the current state from the file, if it exists.
 func LoadState() error {
-	path, err := getStoragePath()
+	path, err := GetStoragePath()
 	if err != nil {
 		return err
 	}
@@ -68,7 +72,7 @@ func writeStateToFile(state AppStateEnum) error {
 		return err
 	}
 
-	path, err := getStoragePath()
+	path, err := GetStoragePath()
 	if err != nil {
 		return err
 	}
@@ -76,8 +80,8 @@ func writeStateToFile(state AppStateEnum) error {
 	return os.WriteFile(filepath.Join(path, "state.json"), stateJSON, fs.FileMode(0644))
 }
 
-// getStoragePath gets the path to the storage directory.
-func getStoragePath() (string, error) {
+// GetStoragePath gets the path to the storage directory.
+func GetStoragePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
