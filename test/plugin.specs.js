@@ -69,22 +69,26 @@ describe('KeepixPolygonPlugin', function() {
     });
 
     it('should be able to install', async function() {
-        const result = await execute({"key":"install"});
+        const result = await execute({"key":"install","ethereumRPC":"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS"});
+        console.log(result)
         expect(result.jsonResult).to.equal(true);
     });
 
     it('should be able to report installation status', async function() {
         const result = await execute({"key":"installed"});
+        console.log(result)
         expect(result.jsonResult).to.equal(true);
     });
 
     it('should be able to report status', async function() {
         const result = await execute({"key":"status"});
+        console.log(result)
         expect(result.jsonResult).to.equal(true);
     });
 
     it('should be able to uninstall', async function() {
         const result = await execute({"key":"uninstall"});
+        console.log(result)
         expect(result.jsonResult).to.equal(true);
     });
 
