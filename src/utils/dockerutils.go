@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -220,6 +221,38 @@ func StopContainerByName(containerName string) error {
 	return nil
 }
 
+// FetchContainerLogs fetches logs from a specified Docker container.
+func FetchContainerLogs(containerID string, numberOfLastLines int) (string, error) {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return "", fmt.Errorf("error creating Docker client: %v", err)
+	}
+	defer cli.Close()
+
+	logOptions := types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Tail:       strconv.Itoa(numberOfLastLines),
+	}
+
+	// Fetching the logs
+	logs, err := cli.ContainerLogs(ctx, containerID, logOptions)
+	if err != nil {
+		return "", fmt.Errorf("error fetching container logs: %v", err)
+	}
+	defer logs.Close()
+
+	// Read and return the logs
+	var logBuffer bytes.Buffer
+	_, err = io.Copy(&logBuffer, logs)
+	if err != nil {
+		return "", fmt.Errorf("error reading container logs: %v", err)
+	}
+
+	return processDockerOutput(logBuffer.Bytes()), nil
+}
+
 func PullImage(imageName string) error {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv)
@@ -312,15 +345,5 @@ func RemoveDockerNetworkIfExists(networkName string) error {
 }
 
 func processDockerOutput(log []byte) string {
-	// Docker log output includes a header. For stdout, the first byte is 1.
-	// We can use this information to strip the header.
-	var cleanedLog []byte
-	for i := 0; i < len(log); i++ {
-		// Docker header size is 8 bytes. If the first byte is 1 (stdout), skip the header.
-		if i+8 < len(log) && log[i] == 1 {
-			cleanedLog = append(cleanedLog, log[i+8:]...)
-			i += 7 // Skip the next 7 bytes of the header
-		}
-	}
-	return string(cleanedLog)
+	return string(log)
 }

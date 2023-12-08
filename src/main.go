@@ -101,29 +101,24 @@ func Plugin() string {
 				return tasks.RESULT_ERROR
 			} else {
 				// Parse arguments
-				var dataMap map[string]interface{}
+				var dataMap map[string]string
 				if err := json.Unmarshal([]byte(os.Args[1]), &dataMap); err != nil {
 					utils.WriteError("Invalid args")
 					return tasks.RESULT_ERROR
 				}
-				var args []string
-				for key, value := range dataMap {
-					// Exclude the specified key
-					if key != "key" {
-						// Convert value to string and add to the array
-						strValue, ok := value.(string)
-						if ok {
-							args = append(args, strValue)
-						}
-					}
-				}
+				// remove the key arg
+				delete(dataMap, "key")
 				validated, missing := tasks.ValidateRequirements(input.Key)
 				if !validated {
 					utils.WriteError("Missing requirements for command: " + strings.Join(missing, ", "))
 					return tasks.RESULT_ERROR
-				} else {
-					return taskFunc(args)
 				}
+				validated, missing = tasks.ValidateArgs(input.Key, dataMap)
+				if !validated {
+					utils.WriteError("Missing arguments for command: " + strings.Join(missing, ", "))
+					return tasks.RESULT_ERROR
+				}
+				return taskFunc(dataMap)
 			}
 		}
 	}
