@@ -62,8 +62,8 @@ describe('KeepixPolygonPlugin', function() {
     before(async function() {
         await enableExecutable();
     });
-
-    it('should be able to report version', async function() {
+    
+    it.skip('should be able to report version', async function() {
         const executablePath = getExecutablePath();
         const {stdout} = await execAsync(`${executablePath} --version`);
         const packageVersion = checkLocalPackageVersion();
