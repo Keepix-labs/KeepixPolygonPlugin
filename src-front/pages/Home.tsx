@@ -62,7 +62,7 @@ export default function HomePage() {
   //syncProgressQuery?.data?.IsSynced === true
 
   const canStart = () => {
-    const acceptedStates = ['NoState', 'NodeInstalled', 'StartingNode', "StartingHeimdall", "StartingBor"];
+    const acceptedStates = ['NodeInstalled', 'StartingNode', "StartingHeimdall", "StartingBor"];
     return acceptedStates.includes(statusQuery?.data?.NodeState ?? '');
   }
 
