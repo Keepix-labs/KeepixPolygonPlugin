@@ -95,6 +95,22 @@ type SyncState struct {
 	HeimdallStepDescription string  `json:"heimdallStepDescription"`
 }
 
+func getChainTask(args map[string]string) string {
+	chain, err := utils.GetBorChainID()
+	if err != nil {
+		utils.WriteError("Error getting chain:" + err.Error())
+		return RESULT_ERROR
+	}
+
+	if chain == 0 {
+		return RESULT_ERROR
+	} else if chain == 137 {
+		return "mainnet"
+	} else {
+		return "testnet"
+	}
+}
+
 func syncStateTask(args map[string]string) string {
 	heimdallState, err := utils.GetHeimdallNodeStatus()
 	if err != nil {

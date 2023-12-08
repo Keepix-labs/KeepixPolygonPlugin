@@ -57,9 +57,19 @@ func GetHeimdallNodeStatus() (*NodeStatusResponse, error) {
 		return nil, err
 	}
 
-	// also fetch live status to get the current block height
+	var statusResponse NodeStatusResponse
+	if err := json.Unmarshal(bodyStatus, &statusResponse); err != nil {
+		return nil, err
+	}
 
-	resp, err = http.Get("https://heimdall-api.polygon.technology/staking/validator-set")
+	// also fetch live status to get the current block height
+	// testnet
+	rpc := "https://heimdall-api.polygon.technology/staking/validator-set"
+	if statusResponse.Result.NodeInfo.Network != "heimdall-137" {
+		// check testnet instead
+		rpc = "https://heimdall-api-testnet.polygon.technology/staking/validator-set"
+	}
+	resp, err = http.Get(rpc)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +77,6 @@ func GetHeimdallNodeStatus() (*NodeStatusResponse, error) {
 
 	bodyLiveStatus, err := io.ReadAll(io.Reader(resp.Body))
 	if err != nil {
-		return nil, err
-	}
-
-	var statusResponse NodeStatusResponse
-	if err := json.Unmarshal(bodyStatus, &statusResponse); err != nil {
 		return nil, err
 	}
 

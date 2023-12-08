@@ -10,11 +10,17 @@ import (
 	"path"
 )
 
-//go:embed conf/bor/genesis.json
-var genesis string
+//go:embed conf/bor/genesis-mainnet.json
+var genesisMainnet string
 
-//go:embed conf/bor/config.toml
-var configToml string
+//go:embed conf/bor/genesis-testnet.json
+var genesisTestnet string
+
+//go:embed conf/bor/config-testnet.toml
+var configBorTestnetToml string
+
+//go:embed conf/bor/config-mainnet.toml
+var configBorMainnetToml string
 
 //go:embed conf/heimdall/config.toml
 var configHeimdallToml string
@@ -26,6 +32,8 @@ func installTask(args map[string]string) string {
 		utils.WriteError("Invalid ethereumRPC")
 		return RESULT_ERROR
 	}
+
+	isTestnet := args["testnet"] == "true"
 
 	storage, _ := appstate.GetStoragePath()
 	localPathHeimdall := path.Join(storage, "data", "heimdall")
@@ -84,7 +92,11 @@ func installTask(args map[string]string) string {
 			utils.WriteError("Error during heimdall config:" + err.Error())
 			return RESULT_ERROR
 		}
-		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"init", "--home=/heimdall-home", "--chain=mainnet"}, "/heimdall-home", localPathHeimdall, []uint{}, false, "", false, "initializer", true)
+		chainArg := "--chain=mainnet"
+		if isTestnet {
+			chainArg = "--chain=mumbai"
+		}
+		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"init", "--home=/heimdall-home", chainArg}, "/heimdall-home", localPathHeimdall, []uint{}, false, "", false, "initializer", true)
 		if err != nil {
 			utils.WriteError("Error during heimdall init:" + err.Error())
 			return RESULT_ERROR
@@ -123,6 +135,11 @@ func installTask(args map[string]string) string {
 
 		// write genesis to file
 		genesisFile := path.Join(localPathBor, "genesis.json")
+
+		genesis := genesisMainnet
+		if isTestnet {
+			genesis = genesisTestnet
+		}
 		err = os.WriteFile(genesisFile, []byte(genesis), fs.FileMode(0644))
 		if err != nil {
 			utils.WriteError("Error writing genesis file: " + err.Error())
@@ -131,6 +148,10 @@ func installTask(args map[string]string) string {
 
 		// write config to file
 		tomlFile := path.Join(localPathBor, "config.toml")
+		configToml := configBorMainnetToml
+		if isTestnet {
+			configToml = configBorTestnetToml
+		}
 		err = os.WriteFile(tomlFile, []byte(configToml), fs.FileMode(0644))
 		if err != nil {
 			utils.WriteError("Error writing toml file: " + err.Error())

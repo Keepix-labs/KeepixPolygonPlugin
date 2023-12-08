@@ -15,6 +15,7 @@ var TaskMap = map[string]TaskFunc{
 	"resync":     resyncTask,
 	"restart":    restartTask,
 	"logs":       logsTask,
+	"chain":      getChainTask,
 }
 
 // TaskRequirements maps task names to their required system conditions
@@ -29,10 +30,11 @@ var TaskRequirements = map[string][]string{
 	"resync":     {"docker", "installed"},
 	"restart":    {"docker", "running"},
 	"logs":       {"docker", "running"},
+	"chain":      {"docker", "running"},
 }
 
 var TarkArgs = map[string][]string{
-	"install":    {"ethereumRPC"},
+	"install":    {"ethereumRPC", "testnet"},
 	"uninstall":  {},
 	"installed":  {},
 	"status":     {},
@@ -42,6 +44,7 @@ var TarkArgs = map[string][]string{
 	"resync":     {"bor", "heimdall"},
 	"restart":    {},
 	"logs":       {"bor", "heimdall", "lines"},
+	"chain":      {},
 }
 
 // validateRequirements checks if all requirements for a task are met

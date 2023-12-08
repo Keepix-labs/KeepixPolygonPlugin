@@ -7,7 +7,15 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/src",
-            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS\"}"]
+            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS\", \"testnet\":\"false\"}"]
+        },
+        {
+            "name": "Debug Install Testnet",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/src",
+            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm\", \"testnet\":\"true\"}"]
         },
         {
             "name": "Debug Uninstall",
@@ -48,6 +56,14 @@
             "mode": "auto",
             "program": "${workspaceFolder}/src",
             "args": ["{\"key\":\"logs\", \"bor\":\"true\", \"heimdall\":\"true\", \"lines\":\"10\"}"]
-        }
+        },
+        {
+            "name": "Debug chain",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/src",
+            "args": ["{\"key\":\"chain\"}"]
+        },
     ]
 }

@@ -71,7 +71,7 @@ describe('KeepixPolygonPlugin', function() {
     });
 
     it('should be able to install', async function() {
-        const result = await execute({"key":"install","ethereumRPC":"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS"});
+        const result = await execute({"key":"install","ethereumRPC":"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS","testnet":"false"});
         expect(result.jsonResult).to.equal("true");
     });
 
@@ -104,6 +104,13 @@ describe('KeepixPolygonPlugin', function() {
         const jsonResult = JSON.parse(result.jsonResult);
         console.log(jsonResult)
         expect(jsonResult.IsSynced).to.equal(false);
+    });
+
+    it('should be able to report chain', async function() {
+        await delay(10000);
+        const result = await execute({"key":"chain"});
+        console.log(result)
+        expect(result.jsonResult == "mainnet" || result.jsonResult == "testnet").to.true
     });
 
     it('should be able to report logs', async function() {
