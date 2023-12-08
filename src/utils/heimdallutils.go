@@ -26,11 +26,12 @@ type NodeStatusResponse struct {
 			Other      map[string]string `json:"other"`
 		} `json:"node_info"`
 		SyncInfo struct {
-			LatestBlockHash   string `json:"latest_block_hash"`
-			LatestAppHash     string `json:"latest_app_hash"`
-			LatestBlockHeight string `json:"latest_block_height"`
-			LatestBlockTime   string `json:"latest_block_time"`
-			CatchingUp        bool   `json:"catching_up"`
+			LatestBlockHash    string `json:"latest_block_hash"`
+			LatestAppHash      string `json:"latest_app_hash"`
+			LatestBlockHeight  string `json:"latest_block_height"`
+			CurrentBlockHeight string
+			LatestBlockTime    string `json:"latest_block_time"`
+			CatchingUp         bool   `json:"catching_up"`
 		} `json:"sync_info"`
 		ValidatorInfo struct {
 			Address string `json:"address"`
@@ -51,15 +52,37 @@ func GetHeimdallNodeStatus() (*NodeStatusResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(io.Reader(resp.Body))
+	bodyStatus, err := io.ReadAll(io.Reader(resp.Body))
+	if err != nil {
+		return nil, err
+	}
+
+	// also fetch live status to get the current block height
+
+	resp, err = http.Get("https://heimdall-api.polygon.technology/staking/validator-set")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bodyLiveStatus, err := io.ReadAll(io.Reader(resp.Body))
 	if err != nil {
 		return nil, err
 	}
 
 	var statusResponse NodeStatusResponse
-	if err := json.Unmarshal(body, &statusResponse); err != nil {
+	if err := json.Unmarshal(bodyStatus, &statusResponse); err != nil {
 		return nil, err
 	}
+
+	var liveStatusResponse = struct {
+		Height string `json:"height"`
+	}{}
+	if err := json.Unmarshal(bodyLiveStatus, &liveStatusResponse); err != nil {
+		return nil, err
+	}
+
+	statusResponse.Result.SyncInfo.CurrentBlockHeight = liveStatusResponse.Height
 
 	return &statusResponse, nil
 }

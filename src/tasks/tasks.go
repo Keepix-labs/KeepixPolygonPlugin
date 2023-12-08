@@ -412,9 +412,11 @@ func statusTask(args []string) string {
 }
 
 type SyncState struct {
-	IsSynced             bool    `json:"IsSynced"`
-	BorSyncProgress      float32 `json:"borSyncProgress"`
-	HeimdallSyncProgress float32 `json:"heimdallSyncProgress"`
+	IsSynced                bool    `json:"IsSynced"`
+	BorSyncProgress         float32 `json:"borSyncProgress"`
+	HeimdallSyncProgress    float32 `json:"heimdallSyncProgress"`
+	BorStepDescription      string  `json:"borStepDescription"`
+	HeimdallStepDescription string  `json:"heimdallStepDescription"`
 }
 
 func syncStateTask(args []string) string {
@@ -428,39 +430,57 @@ func syncStateTask(args []string) string {
 		return RESULT_ERROR
 	}
 
-	blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
-
 	borState, err := utils.GetBorNodeStatus()
 	if err != nil {
 		utils.WriteError("Error getting bor node status:" + err.Error())
 		return RESULT_ERROR
 	}
 
+	var borStepDescription string
+	var heimdallStepDescription string
+
 	var progress float32
 	if !borState.CatchingUp {
 		progress = 100
+		borStepDescription = "Synced"
 	} else {
 		highestBlock, _ := strconv.ParseInt(borState.Result.HighestBlock, 16, 64)
 		currentBlock, _ := strconv.ParseInt(borState.Result.CurrentBlock, 16, 64)
 
 		if highestBlock == 0 {
 			progress = 0
+			borStepDescription = "Waiting for heimdall sync"
 		} else {
 			progress = float32(currentBlock) / float32(highestBlock) * 100
+			borStepDescription = "Syncing"
 		}
 	}
+
+	blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
+	currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
 
 	var progress2 float32
 	if !heimdallState.Result.SyncInfo.CatchingUp {
 		progress2 = 100
+		heimdallStepDescription = "Synced"
 	} else {
-		progress2 = float32(blockHeight) //nothing better at the moment
+		progress2 = float32(blockHeight) / float32(currentBlockHeight) * 100
+		heimdallStepDescription = "Syncing"
+		// override bor status for a clearer view of what's happening
+		borStepDescription = "Waiting for heimdall sync"
+		progress = 0
+	}
+
+	if blockHeight == 0 {
+		heimdallStepDescription = "Waiting for peers"
 	}
 
 	status := &SyncState{
-		IsSynced:             !heimdallState.Result.SyncInfo.CatchingUp && !borState.CatchingUp,
-		BorSyncProgress:      progress,
-		HeimdallSyncProgress: progress2,
+		IsSynced:                !heimdallState.Result.SyncInfo.CatchingUp && !borState.CatchingUp,
+		BorSyncProgress:         progress,
+		HeimdallSyncProgress:    progress2,
+		BorStepDescription:      borStepDescription,
+		HeimdallStepDescription: heimdallStepDescription,
 	}
 
 	// Serialize the struct to JSON

@@ -23,16 +23,12 @@ const faqSyncProgress: any[] = [
     desc: "No, it's not necessary, but if you're on your own computer, please leave it running."
   },
   {
-    title: "Why does the Execution sync remain at zero percent as the Consensus advances?",
-    desc: "The Consensus will be 100% before the Execution node. This is a normal situation, so don't hesitate to wait several hours before doing anything."
+    title: "Why Bor is not syncing while Heimdall is syncing?",
+    desc: "The Bor node needs to wait for the Heimdall node to be fully synchronized before starting its synchronization."
   },
   {
-    title: "Is the progress of the Consensus node blocked at 0%?",
-    desc: "Please wait several hours to be sure of the blockage, once the problem has been confirmed please select re-sync. This will restart synchronization from zero. If this happens again, please repeat the same procedure. Ethereum clients have several synchronization problems that are resolved after several re-syncs.",
-  },
-  {
-    title: "Is the progress of the Execution node blocked at 99.99%?",
-    desc: "At the end of the Execution node's synchronization, it waits for the concensus to send it all the information. The concensus may be delayed, so it needs to check the data again, which may take some time, so please be patient at this stage. If nothing happens after 24 hours, please uninstall and reinstall the plugin."
+    title: "Heimdall finished syncing but Bor is still at 0%?",
+    desc: "Resync Bor and wait for a few minutes.",
   }
 ];
 
@@ -113,10 +109,9 @@ export default function HomePage() {
         <BigLoader title="Estimation: 1 hour to several days." disableLabel={true} full={true}>
           <div className="state-title">
                 <strong>{`Bor Sync Progress:`}</strong>
-                <Progress percent={Number(syncProgressQuery?.data.borSyncProgress)} description={syncProgressQuery?.data.executionSyncProgressStepDescription ?? ''}></Progress>
+                <Progress percent={Number(syncProgressQuery?.data.borSyncProgress)} description={syncProgressQuery?.data.borStepDescription ?? ''}></Progress>
                 <strong>{`Heimdall Sync Progress:`}</strong>
-                <Progress percent={Number(syncProgressQuery?.data.heimdallSyncProgress)} description={syncProgressQuery?.data.borSyncProgress ?? ''}></Progress>
-                {syncProgressQuery?.data.heimdallSyncProgress}
+                <Progress percent={Number(syncProgressQuery?.data.heimdallSyncProgress)} description={syncProgressQuery?.data.heimdallStepDescription ?? ''}></Progress>
                 {/* <strong><Icon icon="svg-spinners:3-dots-scale" /></strong> */}
           </div>
           <FAQ questions={faqSyncProgress}></FAQ>
