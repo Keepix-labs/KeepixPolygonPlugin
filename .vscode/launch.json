@@ -40,6 +40,14 @@
             "mode": "auto",
             "program": "${workspaceFolder}/src",
             "args": ["{\"key\":\"resync\"}"]
+        },
+        {
+            "name": "Debug logs",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/src",
+            "args": ["{\"key\":\"logs\", \"bor\":\"true\", \"heimdall\":\"true\", \"lines\":\"10\"}"]
         }
     ]
 }

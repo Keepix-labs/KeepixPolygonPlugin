@@ -1,4 +1,4 @@
-import "./RplStaking.scss";
+import "./Staking.scss";
 import { Icon } from "@iconify-icon/react";
 import Btn from "../Btn/Btn";
 import Field from "../Field/Field";
@@ -14,7 +14,7 @@ import { useState } from "react";
 import BannerAlert from "../BannerAlert/BannerAlert";
 import { Input } from "../Form/Form";
 
-export const RplStaking = ({ wallet, status, minipools, backFn }: any) => {
+export const Staking = ({ wallet, status, minipools, backFn }: any) => {
     const [open, setPopinOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [postResult, setPostResult] = useState<any>(undefined);

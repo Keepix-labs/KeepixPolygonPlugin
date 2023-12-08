@@ -14,7 +14,7 @@ import { Icon } from "@iconify-icon/react";
 import FAQ from "../components/Faq/Faq";
 import Progress from "../components/Progress/Progress";
 import { Node } from "../components/Node/Node";
-import { RplStaking } from "../components/RplStaking/RplStaking";
+import { Staking } from "../components/Staking/Staking";
 
 
 const faqSyncProgress: any[] = [
@@ -34,7 +34,7 @@ const faqSyncProgress: any[] = [
 
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
-  const [stakeRplDisplay, setStakeRplDisplay] = useState(false);
+  const [stakeDisplay, setStakeDisplay] = useState(true);
   const walletQuery = useQuery({
     queryKey: ["getPluginWallet"],
     queryFn: getPluginWallet
@@ -60,8 +60,6 @@ export default function HomePage() {
 
 
   //syncProgressQuery?.data?.IsSynced === true
-
-  console.log('statusQuery', statusQuery, loading);
 
   return (
     <div className="AppBase-content">
@@ -155,38 +153,16 @@ export default function HomePage() {
           </div>
         </BigLoader>
       )}
-
-      {/* Register the node to RocketPool */}
-      {statusQuery?.data && syncProgressQuery?.data
-        && syncProgressQuery?.data?.IsSynced === true
-        && statusQuery.data?.NodeState === 'NodeStarted'
-        && walletQuery.data?.Wallet !== undefined
-        && statusQuery.data?.IsRegistered === false && (<>
-        <BigLoader title="Node Ready." disableLabel={true} full={true}>
-          <Btn
-                status="warning"
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const resultRegister = await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/register-node`);
-                  } catch (e) {
-                    console.log(e);
-                  }
-                  setLoading(false);
-                }}
-              >Register My Node to RocketPool</Btn>
-        </BigLoader>
-      </>)}
       
-      {/* stake Rpl */}
-      {stakeRplDisplay
+      {/* stake MATIC */}
+      {stakeDisplay
         && statusQuery?.data && syncProgressQuery?.data
-        && syncProgressQuery?.data?.IsSynced === true
+        /*&& syncProgressQuery?.data?.IsSynced === true*/
         && statusQuery.data?.NodeState === 'NodeStarted'
-        && walletQuery.data?.Wallet !== undefined
-        && statusQuery.data?.IsRegistered === true
+        /*&& walletQuery.data?.Wallet !== undefined*/
+        /*&& statusQuery.data?.IsRegistered === true*/
         && (<>
-          <RplStaking wallet={walletQuery.data?.Wallet} status={statusQuery?.data} backFn={() => { setStakeRplDisplay(false); }}></RplStaking>
+          <Staking wallet={walletQuery.data?.Wallet} status={statusQuery?.data} backFn={() => { setStakeDisplay(false); }}></Staking>
       </>)}
       <Sprites></Sprites>
     </div>
