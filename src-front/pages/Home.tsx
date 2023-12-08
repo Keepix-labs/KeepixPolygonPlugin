@@ -61,6 +61,11 @@ export default function HomePage() {
 
   //syncProgressQuery?.data?.IsSynced === true
 
+  const canStart = () => {
+    const acceptedStates = ['NoState', 'NodeInstalled', 'StartingNode', "StartingHeimdall", "StartingBor"];
+    return acceptedStates.includes(statusQuery?.data?.NodeState ?? '');
+  }
+
   return (
     <div className="AppBase-content">
       {(!statusQuery?.data || loading) && (
@@ -69,7 +74,7 @@ export default function HomePage() {
       {statusQuery?.data && statusQuery.data?.NodeState === 'NoState' && (
         <BannerAlert status="danger">Error with the Plugin "{statusQuery.data?.NodeState}" please Reinstall.</BannerAlert>
       )}
-      {statusQuery?.data && statusQuery.data?.NodeState === 'NodeInstalled' && (
+      {statusQuery?.data && canStart() && (
         <BigLogo full={true}>
           <Btn
             status="warning"
