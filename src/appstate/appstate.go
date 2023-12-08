@@ -31,6 +31,41 @@ const (
 // CurrentState holds the current state of the application.
 var CurrentState AppStateEnum = NoState
 
+func CurrentStateString() string {
+	switch CurrentState {
+	case NoState:
+		return "NoState"
+	case SetupErrorState:
+		return "SetupErrorState"
+	case StartingInstall:
+		return "StartingInstall"
+	case InstallingNode:
+		return "InstallingNode"
+	case ConfiguringHeimdall:
+		return "ConfiguringHeimdall"
+	case ConfiguringBor:
+		return "ConfiguringBor"
+	case ConfiguringNetwork:
+		return "ConfiguringNetwork"
+	case NodeInstalled:
+		return "NodeInstalled"
+	case StartingNode:
+		return "StartingNode"
+	case StartingHeimdall:
+		return "StartingHeimdall"
+	case StartingRestServer:
+		return "StartingRestServer"
+	case StartingBor:
+		return "StartingBor"
+	case NodeStarted:
+		return "NodeStarted"
+	case NodeRestarting:
+		return "NodeRestarting"
+	}
+
+	return "Unknown"
+}
+
 // UpdateState updates the current state and writes it to disk.
 func UpdateState(newState AppStateEnum) error {
 	CurrentState = newState

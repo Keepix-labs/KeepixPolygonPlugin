@@ -13,9 +13,9 @@ import (
 )
 
 type AppResult struct {
-	Result bool   `json:"jsonResult"`
-	Stdout string `json:"stdout"`
-	Stderr string `json:"stderr"`
+	Result string `json:"jsonResult"`
+	Stdout string `json:"stdOut"`
+	Stderr string `json:"stdErr"`
 }
 
 var version string
@@ -76,9 +76,9 @@ func App() (AppResult, error) {
 	}, nil
 }
 
-func Plugin() bool {
+func Plugin() string {
 	if len(os.Args) != 2 {
-		return false
+		return tasks.RESULT_ERROR
 	}
 
 	var input struct {
@@ -88,23 +88,23 @@ func Plugin() bool {
 	err := appstate.LoadState()
 	if err != nil {
 		utils.WriteError(err.Error())
-		return false
+		return tasks.RESULT_ERROR
 	} else {
 		err = json.Unmarshal([]byte(os.Args[1]), &input)
 		if err != nil {
 			utils.WriteError(err.Error())
-			return false
+			return tasks.RESULT_ERROR
 		} else {
 			taskFunc, exists := tasks.TaskMap[input.Key]
 			if !exists {
 				utils.WriteError("Invalid command")
-				return false
+				return tasks.RESULT_ERROR
 			} else {
 				// Parse arguments
 				var dataMap map[string]interface{}
 				if err := json.Unmarshal([]byte(os.Args[1]), &dataMap); err != nil {
 					utils.WriteError("Invalid args")
-					return false
+					return tasks.RESULT_ERROR
 				}
 				var args []string
 				for key, value := range dataMap {
@@ -120,7 +120,7 @@ func Plugin() bool {
 				validated, missing := tasks.ValidateRequirements(input.Key)
 				if !validated {
 					utils.WriteError("Missing requirements for command: " + strings.Join(missing, ", "))
-					return false
+					return tasks.RESULT_ERROR
 				} else {
 					return taskFunc(args)
 				}

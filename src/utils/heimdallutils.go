@@ -44,8 +44,8 @@ type NodeStatusResponse struct {
 }
 
 // getNodeStatus performs an HTTP GET request to the specified URL and parses the JSON response.
-func GetNodeStatus() (*NodeStatusResponse, error) {
-	resp, err := http.Get("localhost:26657/status")
+func GetHeimdallNodeStatus() (*NodeStatusResponse, error) {
+	resp, err := http.Get("http://localhost:26657/status")
 	if err != nil {
 		return nil, err
 	}

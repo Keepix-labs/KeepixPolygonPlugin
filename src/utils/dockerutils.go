@@ -100,23 +100,124 @@ func DockerRun(imageName string, args []string, containerPath, hostPath string, 
 	select {
 	case err := <-errCh:
 		if err != nil {
-			panic(err)
+			return "", err
 		}
 	case <-statusCh:
 	}
 
 	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: false})
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	defer out.Close()
 	content, err := io.ReadAll(io.Reader(out))
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	return processDockerOutput(content), nil
+}
+
+// RemoveHostFolderUsingContainer removes a folder on the host machine using a Docker container.
+func RemoveHostFolderUsingContainer(containerPath, hostPath string, folders string) error {
+	err := PullImage("alpine:latest")
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return fmt.Errorf("error creating Docker client: %v", err)
+	}
+	defer cli.Close()
+
+	// Define configuration for a temporary container
+	tempContainerConfig := container.Config{
+		Image: "alpine",
+		Cmd:   []string{"sh", "-c", "rm -rf " + folders},
+	}
+
+	hostConfig := container.HostConfig{
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: hostPath,
+				Target: containerPath,
+			}},
+	}
+
+	// Create a temporary container
+	resp, err := cli.ContainerCreate(ctx, &tempContainerConfig, &hostConfig, nil, nil, "")
+	if err != nil {
+		return fmt.Errorf("error creating temporary container: %v", err)
+	}
+
+	// Start and remove the temporary container
+	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		return fmt.Errorf("error starting temporary container: %v", err)
+	}
+	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return fmt.Errorf("error while waiting for container to finish: %v", err)
+		}
+	case <-statusCh:
+	}
+	if err := cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{Force: true}); err != nil {
+		return fmt.Errorf("error removing temporary container: %v", err)
+	}
+
+	err = RemoveImageIfExists("alpine:latest")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// StopContainerByName stops a running Docker container by its name.
+func StopContainerByName(containerName string) error {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return fmt.Errorf("error creating Docker client: %v", err)
+	}
+	defer cli.Close()
+
+	// List containers
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		return fmt.Errorf("error listing containers: %v", err)
+	}
+
+	// Find the container with the specified name
+	var foundContainerID string
+	for _, container := range containers {
+		for _, name := range container.Names {
+			if name == "/"+containerName {
+				foundContainerID = container.ID
+				break
+			}
+		}
+	}
+	if foundContainerID == "" {
+		fmt.Printf("no container found with name %s", containerName)
+		return nil // not an error
+	}
+
+	// Stop the container
+	if err := cli.ContainerStop(ctx, foundContainerID, container.StopOptions{}); err != nil {
+		return fmt.Errorf("error stopping container: %v", err)
+	}
+
+	// Remove the container
+	if err := cli.ContainerRemove(ctx, foundContainerID, types.ContainerRemoveOptions{}); err != nil {
+		return fmt.Errorf("error removing container: %v", err)
+	}
+
+	return nil
 }
 
 func PullImage(imageName string) error {
@@ -136,7 +237,7 @@ func PullImage(imageName string) error {
 }
 
 // RemoveImage removes a Docker image and any containers created from it.
-func RemoveImage(imageName string) error {
+func RemoveImageIfExists(imageName string) error {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -161,7 +262,12 @@ func RemoveImage(imageName string) error {
 	// Now remove the image
 	_, err = cli.ImageRemove(ctx, imageName, types.ImageRemoveOptions{Force: true})
 	if err != nil {
-		return err
+		if client.IsErrNotFound(err) {
+			// Image not found; ignore the error and proceed
+		} else {
+			// For all other errors, return the error
+			return err
+		}
 	}
 	return nil
 }
@@ -185,7 +291,7 @@ func CreateDockerNetwork(networkName string) error {
 }
 
 // RemoveDockerNetwork creates a Docker network with the specified name.
-func RemoveDockerNetwork(networkName string) error {
+func RemoveDockerNetworkIfExists(networkName string) error {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -194,7 +300,12 @@ func RemoveDockerNetwork(networkName string) error {
 
 	err = cli.NetworkRemove(ctx, networkName)
 	if err != nil {
-		return err
+		if client.IsErrNotFound(err) {
+			// Network not found; ignore the error
+		} else {
+			// Return any other errors
+			return err
+		}
 	}
 
 	return nil
