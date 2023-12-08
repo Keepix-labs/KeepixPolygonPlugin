@@ -6,7 +6,7 @@ import { KEEPIX_API_URL, PLUGIN_API_SUBPATH } from "../../constants";
 import { safeFetch } from "../../lib/utils";
 import Web3 from "web3";
 import { useQuery } from "@tanstack/react-query";
-import { getMinipoolMinimumStakeRplAmounts, getPluginNodeInformation, postPluginCreateMiniPool, postPluginStakeRpl, postPluginUnStakeRpl } from "../../queries/api";
+import { getPluginNodeInformation } from "../../queries/api";
 import BigLoader from "../BigLoader/BigLoader";
 import Loader from "../Loader/Loader";
 import Popin from "../Popin/Popin";
@@ -29,29 +29,29 @@ export const RplStaking = ({ wallet, status, minipools, backFn }: any) => {
         enabled: status?.NodeState === 'NODE_RUNNING'
       });
 
-    const miniPoolMinimumStakeRplAmountsQuery = useQuery({
-        queryKey: ["getMinipoolMinimumStakeRplAmounts"],
-        queryFn: getMinipoolMinimumStakeRplAmounts,
-        refetchInterval: 60000,
-        enabled: status?.NodeState === 'NODE_RUNNING'
-    });
+    // const miniPoolMinimumStakeRplAmountsQuery = useQuery({
+    //     queryKey: ["getMinipoolMinimumStakeRplAmounts"],
+    //     queryFn: getMinipoolMinimumStakeRplAmounts,
+    //     refetchInterval: 60000,
+    //     enabled: status?.NodeState === 'NODE_RUNNING'
+    // });
 
     const sendStake = async (body: any) => {
         setPopinOpen(true);
         setLoading(true);
         setPostResult(undefined);
-        const result = await postPluginStakeRpl(body);
+        // const result = await postPluginStakeRpl(body);
         setLoading(false);
-        setPostResult(result);
+        // setPostResult(result);
     };
 
     const sendUnStake = async (body: any) => {
         setPopinOpen(true);
         setLoading(true);
         setPostResult(undefined);
-        const result = await postPluginUnStakeRpl(body);
+        // const result = await postPluginUnStakeRpl(body);
         setLoading(false);
-        setPostResult(result);
+        // setPostResult(result);
     }
 
     return (<>
@@ -101,7 +101,7 @@ export const RplStaking = ({ wallet, status, minipools, backFn }: any) => {
                     >{ nodeInformationQuery.data.node.rplWalletBalance } RPL</Field>
                 )}
             </div>
-            {(!nodeInformationQuery.data || !miniPoolMinimumStakeRplAmountsQuery.data) && (<Loader></Loader>)}
+            {/* {(!nodeInformationQuery.data || !miniPoolMinimumStakeRplAmountsQuery.data) && (<Loader></Loader>)}
             {nodeInformationQuery.data
                 && miniPoolMinimumStakeRplAmountsQuery.data
                 && (<>
@@ -203,7 +203,7 @@ export const RplStaking = ({ wallet, status, minipools, backFn }: any) => {
                         >Unstake</Btn>
                     </div>
                 </div>
-            </>)}
+            </>)} */}
         </div>
         {open && (
         <>

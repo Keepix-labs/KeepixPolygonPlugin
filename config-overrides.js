@@ -14,8 +14,7 @@ console.log(pluginId)
 const execPluginFunction = async (argObject) => {
     return await new Promise((resolve) => {
         // double stringify for escapes double quotes
-        exec(`./dist/${pluginId} ${JSON.stringify(JSON.stringify(argObject))}`, (error, stdout, stderr) => {
-            console.log("out", stdout)
+        exec(`./build/dist/${pluginId} ${JSON.stringify(JSON.stringify(argObject))}`, (error, stdout, stderr) => {
             const result = JSON.parse(stdout);
             console.log("OUT", result)
 

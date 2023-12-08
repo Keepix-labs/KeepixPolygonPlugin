@@ -24,6 +24,22 @@
             "mode": "auto",
             "program": "${workspaceFolder}/src",
             "args": ["{\"key\":\"start\"}"]
+        },
+        {
+            "name": "Debug Sync state",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/src",
+            "args": ["{\"key\":\"sync-state\"}"]
+        },
+        {
+            "name": "Debug resync",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/src",
+            "args": ["{\"key\":\"resync\"}"]
         }
     ]
 }
