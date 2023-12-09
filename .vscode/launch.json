@@ -55,7 +55,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/src",
-            "args": ["{\"key\":\"logs\", \"bor\":\"true\", \"heimdall\":\"true\", \"lines\":\"10\"}"]
+            "args": ["{\"key\":\"logs\", \"erigon\":\"true\", \"heimdall\":\"true\", \"lines\":\"10\"}"]
         },
         {
             "name": "Debug chain",

@@ -41,9 +41,9 @@ var TarkArgs = map[string][]string{
 	"start":      {},
 	"stop":       {},
 	"sync-state": {},
-	"resync":     {"bor", "heimdall"},
+	"resync":     {"erigon", "heimdall"},
 	"restart":    {},
-	"logs":       {"bor", "heimdall", "lines"},
+	"logs":       {"erigon", "heimdall", "lines"},
 	"chain":      {},
 }
 

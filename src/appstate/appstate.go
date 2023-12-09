@@ -16,7 +16,7 @@ const (
 	StartingInstall
 	InstallingNode
 	ConfiguringHeimdall
-	ConfiguringBor
+	ConfiguringErigon
 	ConfiguringNetwork
 	NodeInstalled
 	StartingNode
@@ -28,11 +28,16 @@ const (
 	// Add new states here...
 )
 
+type AppState struct {
+	State     AppStateEnum `json:"state"`
+	IsTestnet bool         `json:"isTestnet"`
+}
+
 // CurrentState holds the current state of the application.
-var CurrentState AppStateEnum = NoState
+var CurrentState AppState = AppState{State: NoState, IsTestnet: false}
 
 func CurrentStateString() string {
-	switch CurrentState {
+	switch CurrentState.State {
 	case NoState:
 		return "NoState"
 	case SetupErrorState:
@@ -43,8 +48,8 @@ func CurrentStateString() string {
 		return "InstallingNode"
 	case ConfiguringHeimdall:
 		return "ConfiguringHeimdall"
-	case ConfiguringBor:
-		return "ConfiguringBor"
+	case ConfiguringErigon:
+		return "ConfiguringErigon"
 	case ConfiguringNetwork:
 		return "ConfiguringNetwork"
 	case NodeInstalled:
@@ -68,7 +73,13 @@ func CurrentStateString() string {
 
 // UpdateState updates the current state and writes it to disk.
 func UpdateState(newState AppStateEnum) error {
-	CurrentState = newState
+	CurrentState.State = newState
+	return writeStateToFile(CurrentState)
+}
+
+// UpdateState updates the current state and writes it to disk.
+func UpdateChain(isTestnet bool) error {
+	CurrentState.IsTestnet = isTestnet
 	return writeStateToFile(CurrentState)
 }
 
@@ -90,7 +101,7 @@ func LoadState() error {
 		return err
 	}
 
-	var state AppStateEnum
+	var state AppState
 	err = json.Unmarshal(stateJSON, &state)
 	if err != nil {
 		return err
@@ -101,7 +112,7 @@ func LoadState() error {
 }
 
 // writeStateToFile writes the current state to a file in JSON format.
-func writeStateToFile(state AppStateEnum) error {
+func writeStateToFile(state AppState) error {
 	stateJSON, err := json.Marshal(state)
 	if err != nil {
 		return err

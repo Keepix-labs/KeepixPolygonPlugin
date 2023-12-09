@@ -43,19 +43,19 @@ func CheckWSL2() bool {
 }
 
 func CheckInstalled() bool {
-	return appstate.CurrentState >= appstate.NodeInstalled
+	return appstate.CurrentState.State >= appstate.NodeInstalled
 }
 
 func CheckUninstalled() bool {
-	return appstate.CurrentState < appstate.NodeInstalled
+	return appstate.CurrentState.State < appstate.NodeInstalled
 }
 
 func CheckStopped() bool {
-	return appstate.CurrentState <= appstate.NodeStarted
+	return appstate.CurrentState.State <= appstate.NodeStarted
 }
 
 func CheckRunning() bool {
-	return appstate.CurrentState == appstate.NodeStarted
+	return appstate.CurrentState.State == appstate.NodeStarted
 }
 
 func CheckHas4CPU() bool {

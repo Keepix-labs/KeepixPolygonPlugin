@@ -10,9 +10,9 @@ import (
 func startTask(args map[string]string) string {
 	storage, _ := appstate.GetStoragePath()
 	localPathHeimdall := path.Join(storage, "data", "heimdall")
-	localPathBor := path.Join(storage, "data", "bor")
+	localPathErigon := path.Join(storage, "data", "erigon")
 
-	if appstate.CurrentState <= appstate.StartingHeimdall {
+	if appstate.CurrentState.State <= appstate.StartingHeimdall {
 		appstate.UpdateState(appstate.StartingHeimdall)
 		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"start", "--home=/heimdall-home"}, "/heimdall-home", localPathHeimdall, []uint{26657, 26656}, true, "polygon", true, "heimdall", false)
 		if err != nil {
@@ -24,7 +24,7 @@ func startTask(args map[string]string) string {
 		}
 	}
 
-	if appstate.CurrentState <= appstate.StartingRestServer {
+	if appstate.CurrentState.State <= appstate.StartingRestServer {
 		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"rest-server", "--home=/heimdall-home", "--node=tcp://heimdall:26657"}, "/heimdall-home", localPathHeimdall, []uint{1317}, true, "polygon", true, "heimdall-rest", false)
 		if err != nil {
 			utils.WriteError("Error during heimdall rest server start:" + err.Error())
@@ -35,10 +35,15 @@ func startTask(args map[string]string) string {
 		}
 	}
 
-	if appstate.CurrentState <= appstate.StartingBor {
-		output, err := utils.DockerRun("0xpolygon/bor:1.1.0", []string{"server", "--datadir=/bor-home", "--config=/bor-home/config.toml"}, "/bor-home", localPathBor, []uint{30303, 8545}, true, "polygon", true, "bor", false)
+	if appstate.CurrentState.State <= appstate.StartingBor {
+		//erigon --chain=mumbai --bor.heimdall=<your heimdall url> --datadir=<your_data_dir>
+		chainArg := "--chain=bor-mainnet"
+		if appstate.CurrentState.IsTestnet {
+			chainArg = "--chain=mumbai"
+		}
+		output, err := utils.DockerRun("thorax/erigon:v2.53.4", []string{"--datadir=/erigon-home", "--bor.heimdall=http://heimdall-rest:1317", "--private.api.addr=0.0.0.0:9090", "--http.addr=0.0.0.0", chainArg}, "/erigon-home", localPathErigon, []uint{30303, 8545, 9090}, true, "polygon", true, "erigon", false)
 		if err != nil {
-			utils.WriteError("Error during heimdall rest server start:" + err.Error())
+			utils.WriteError("Error during erigon start:" + err.Error())
 			return RESULT_ERROR
 		} else {
 			fmt.Print(output)
@@ -54,7 +59,7 @@ func startTask(args map[string]string) string {
 func stopTask(args map[string]string) string {
 	err1 := utils.StopContainerByName("heimdall")
 	err2 := utils.StopContainerByName("heimdall-rest")
-	err3 := utils.StopContainerByName("bor")
+	err3 := utils.StopContainerByName("erigon")
 
 	if err1 != nil {
 		utils.WriteError("Error stopping heimdall:" + err1.Error())
@@ -63,7 +68,7 @@ func stopTask(args map[string]string) string {
 		utils.WriteError("Error stopping heimdall-rest:" + err2.Error())
 	}
 	if err3 != nil {
-		utils.WriteError("Error stopping bor:" + err3.Error())
+		utils.WriteError("Error stopping erigon:" + err3.Error())
 	}
 
 	if err1 != nil || err2 != nil || err3 != nil {
@@ -74,9 +79,9 @@ func stopTask(args map[string]string) string {
 }
 
 func resyncTask(args map[string]string) string {
-	resyncBor := args["bor"]
+	resyncErigon := args["erigon"]
 	resyncHeimdall := args["heimdall"]
-	if resyncBor != "true" && resyncHeimdall != "true" {
+	if resyncErigon != "true" && resyncHeimdall != "true" {
 		return RESULT_SUCCESS
 	}
 	res := stopTask(map[string]string{})
@@ -84,7 +89,7 @@ func resyncTask(args map[string]string) string {
 		utils.WriteError("Error stopping node")
 		return RESULT_ERROR
 	}
-	resRemove := removeData(resyncBor == "true", resyncHeimdall == "true")
+	resRemove := removeData(resyncErigon == "true", resyncHeimdall == "true")
 	if !resRemove {
 		utils.WriteError("Error removing data")
 		return RESULT_ERROR

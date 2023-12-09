@@ -114,15 +114,15 @@ describe('KeepixPolygonPlugin', function() {
     });
 
     it('should be able to report logs', async function() {
-        const result = await execute({"key":"logs","bor":"true","heimdall":"true", "lines": "1"});
+        const result = await execute({"key":"logs","erigon":"true","heimdall":"true", "lines": "1"});
         const jsonResult = JSON.parse(result.jsonResult);
         console.log(jsonResult)
-        expect(jsonResult.borLogs).to.not.be.equal("");
+        expect(jsonResult.erigonLogs).to.not.be.equal("");
         expect(jsonResult.heimdallLogs).to.not.be.equal("");
     });
 
     it('should be able to resync', async function() {
-        const result = await execute({"key":"resync","bor":"true","heimdall":"true"});
+        const result = await execute({"key":"resync","erigon":"true","heimdall":"true"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
     });

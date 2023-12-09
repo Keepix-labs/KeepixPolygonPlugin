@@ -18,32 +18,39 @@ type RequestBody struct {
 	ID      int           `json:"id"`
 }
 
-// ResponseBody represents the expected JSON response.
-type ResponseBody struct {
-	Jsonrpc string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  struct {
-		CurrentBlock        string `json:"currentBlock"`
-		HealedBytecodeBytes string `json:"healedBytecodeBytes"`
-		HealedBytecodes     string `json:"healedBytecodes"`
-		HealedTrienodeBytes string `json:"healedTrienodeBytes"`
-		HealedTrienodes     string `json:"healedTrienodes"`
-		HealingBytecode     string `json:"healingBytecode"`
-		HealingTrienodes    string `json:"healingTrienodes"`
-		HighestBlock        string `json:"highestBlock"`
-		StartingBlock       string `json:"startingBlock"`
-		SyncedAccountBytes  string `json:"syncedAccountBytes"`
-		SyncedAccounts      string `json:"syncedAccounts"`
-		SyncedBytecodeBytes string `json:"syncedBytecodeBytes"`
-		SyncedBytecodes     string `json:"syncedBytecodes"`
-		SyncedStorage       string `json:"syncedStorage"`
-		SyncedStorageBytes  string `json:"syncedStorageBytes"`
-	} `json:"result"`
-	CatchingUp bool
+// Define the struct for each stage
+type Stage struct {
+	StageName   string `json:"stage_name"`
+	BlockNumber string `json:"block_number"`
 }
 
-// GetNodeStatus performs a request and returns the node status or an error.
-func GetBorNodeStatus() (*ResponseBody, error) {
+// Define the struct for the result field
+type Result struct {
+	CurrentBlock string  `json:"currentBlock"`
+	HighestBlock string  `json:"highestBlock"`
+	Stages       []Stage `json:"stages"`
+}
+
+// Define the overall struct for the JSON response
+type ResponseBody struct {
+	JSONRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  Result `json:"result"`
+}
+
+type ResponseBodyNotSyncing struct {
+	JSONRPC string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  bool   `json:"result"`
+}
+
+type SyncingStatus struct {
+	Progress float32
+	Stage    string
+}
+
+// GetErigonSyncingStatus performs a request and returns the node status or an error.
+func GetErigonSyncingStatus() (*SyncingStatus, error) {
 	url := "http://localhost:8545/"
 	requestBody := RequestBody{
 		Jsonrpc: "2.0",
@@ -74,18 +81,12 @@ func GetBorNodeStatus() (*ResponseBody, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
-
+	isSyncing := true
 	var response ResponseBody
-	response.CatchingUp = true
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		// if already synced this is only returning false
 		// so we can ignore the error
-		var syncing struct {
-			Jsonrpc string `json:"jsonrpc"`
-			ID      int    `json:"id"`
-			Result  bool   `json:"result"`
-		}
-		response.CatchingUp = false
+		var syncing ResponseBodyNotSyncing
 		if err := json.Unmarshal(respBody, &syncing); err != nil {
 			return nil, fmt.Errorf("error unmarshalling response body: %v", err)
 		}
@@ -93,9 +94,27 @@ func GetBorNodeStatus() (*ResponseBody, error) {
 			// this is something else, report error
 			return nil, fmt.Errorf("error unmarshalling response body: %v", err)
 		}
+		isSyncing = false
 	}
 
-	return &response, nil
+	result := SyncingStatus{
+		Progress: 100.0,
+		Stage:    "Synced",
+	}
+
+	if isSyncing {
+		highestBlock, _ := strconv.ParseInt(response.Result.HighestBlock, 16, 64)
+		currentBlock, _ := strconv.ParseInt(response.Result.CurrentBlock, 16, 64)
+		if highestBlock == 0 {
+			result.Progress = 0
+			result.Stage = "Waiting for peers"
+		} else {
+			result.Progress = float32(currentBlock) / float32(highestBlock) * 100
+			result.Stage = "Syncing"
+		}
+	}
+
+	return &result, nil
 }
 
 type responseChainIDBody struct {
@@ -104,8 +123,8 @@ type responseChainIDBody struct {
 	Result  string `json:"result"`
 }
 
-// GetNodeStatus performs a request and returns the node status or an error.
-func GetBorChainID() (int, error) {
+// GetErigonChainID performs a request and returns the node status or an error.
+func GetErigonChainID() (int, error) {
 	url := "http://localhost:8545/"
 	requestBody := RequestBody{
 		Jsonrpc: "2.0",

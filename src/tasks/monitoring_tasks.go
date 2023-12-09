@@ -23,7 +23,7 @@ type NodeStatus struct {
 // returns plugins status
 func statusTask(args map[string]string) string {
 	_, err := utils.GetHeimdallNodeStatus()
-	_, err2 := utils.GetBorNodeStatus()
+	_, err2 := utils.GetErigonSyncingStatus()
 
 	// Create an instance of NodeStatus
 	status := NodeStatus{
@@ -44,11 +44,11 @@ func statusTask(args map[string]string) string {
 
 type LogsResponse struct {
 	HeimdallLogs string `json:"heimdallLogs"`
-	BorLogs      string `json:"borLogs"`
+	ErigonLogs   string `json:"erigonLogs"`
 }
 
 func logsTask(args map[string]string) string {
-	bogLogs := args["bor"]
+	erigonLogs := args["erigon"]
 	heimdallLogs := args["heimdall"]
 	linesAmount, err := strconv.Atoi(args["lines"])
 	if err != nil {
@@ -57,16 +57,16 @@ func logsTask(args map[string]string) string {
 	}
 
 	var logsResponse LogsResponse = LogsResponse{}
-	if bogLogs != "true" && heimdallLogs != "true" {
+	if erigonLogs != "true" && heimdallLogs != "true" {
 		return RESULT_SUCCESS
 	}
-	if bogLogs == "true" {
-		output, err := utils.FetchContainerLogs("bor", linesAmount)
+	if erigonLogs == "true" {
+		output, err := utils.FetchContainerLogs("erigon", linesAmount)
 		if err != nil {
 			utils.WriteError("Error getting logs:" + err.Error())
 			return RESULT_ERROR
 		}
-		logsResponse.BorLogs = output
+		logsResponse.ErigonLogs = output
 	}
 	if heimdallLogs == "true" {
 		output, err := utils.FetchContainerLogs("heimdall", linesAmount)
@@ -89,14 +89,14 @@ func logsTask(args map[string]string) string {
 
 type SyncState struct {
 	IsSynced                bool    `json:"IsSynced"`
-	BorSyncProgress         float32 `json:"borSyncProgress"`
+	ErigonSyncProgress      float32 `json:"erigonSyncProgress"`
 	HeimdallSyncProgress    float32 `json:"heimdallSyncProgress"`
-	BorStepDescription      string  `json:"borStepDescription"`
+	ErigonStepDescription   string  `json:"erigonStepDescription"`
 	HeimdallStepDescription string  `json:"heimdallStepDescription"`
 }
 
 func getChainTask(args map[string]string) string {
-	chain, err := utils.GetBorChainID()
+	chain, err := utils.GetErigonChainID()
 	if err != nil {
 		utils.WriteError("Error getting chain:" + err.Error())
 		return RESULT_ERROR
@@ -118,31 +118,13 @@ func syncStateTask(args map[string]string) string {
 		return RESULT_ERROR
 	}
 
-	borState, err := utils.GetBorNodeStatus()
+	erigonState, err := utils.GetErigonSyncingStatus()
 	if err != nil {
-		utils.WriteError("Error getting bor node status:" + err.Error())
+		utils.WriteError("Error getting erigon node status:" + err.Error())
 		return RESULT_ERROR
 	}
 
-	var borStepDescription string
 	var heimdallStepDescription string
-
-	var progress float32
-	if !borState.CatchingUp {
-		progress = 100
-		borStepDescription = "Synced"
-	} else {
-		highestBlock, _ := strconv.ParseInt(borState.Result.HighestBlock, 16, 64)
-		currentBlock, _ := strconv.ParseInt(borState.Result.CurrentBlock, 16, 64)
-
-		if highestBlock == 0 {
-			progress = 0
-			borStepDescription = "Waiting for heimdall sync"
-		} else {
-			progress = float32(currentBlock) / float32(highestBlock) * 100
-			borStepDescription = "Syncing"
-		}
-	}
 
 	blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
 	currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
@@ -154,9 +136,6 @@ func syncStateTask(args map[string]string) string {
 	} else {
 		progress2 = float32(blockHeight) / float32(currentBlockHeight) * 100
 		heimdallStepDescription = "Syncing"
-		// override bor status for a clearer view of what's happening
-		borStepDescription = "Waiting for heimdall sync"
-		progress = 0
 	}
 
 	if blockHeight == 0 {
@@ -164,10 +143,10 @@ func syncStateTask(args map[string]string) string {
 	}
 
 	status := &SyncState{
-		IsSynced:                !heimdallState.Result.SyncInfo.CatchingUp && !borState.CatchingUp,
-		BorSyncProgress:         progress,
+		IsSynced:                !heimdallState.Result.SyncInfo.CatchingUp && erigonState.Stage == "Synced",
+		ErigonSyncProgress:      erigonState.Progress,
 		HeimdallSyncProgress:    progress2,
-		BorStepDescription:      borStepDescription,
+		ErigonStepDescription:   erigonState.Stage,
 		HeimdallStepDescription: heimdallStepDescription,
 	}
 
