@@ -10,12 +10,6 @@ import (
 	"path"
 )
 
-////go:embed conf/bor/genesis-mainnet.json
-// var genesisMainnet string
-
-//// go:embed conf/bor/genesis-testnet.json
-// var genesisTestnet string
-
 //go:embed conf/heimdall/config.toml
 var configHeimdallToml string
 
@@ -148,18 +142,23 @@ func installTask(args map[string]string) string {
 	return RESULT_SUCCESS
 }
 
-func removeData(erigon bool, heimdall bool) bool {
+// removeData removes chain data from erigon and heimdall, if all is true, it removes all data
+func removeData(erigon bool, heimdall bool, all bool) bool {
 	if !erigon && !heimdall {
 		return true
 	}
 	storage, _ := appstate.GetStoragePath()
 	// remove data folders using docker because of permission issues
 	folders := ""
-	// if erigon {
-	// 	folders += "/plugin/data/erigon/bor /plugin/data/erigon/keystore "
-	// }
-	if heimdall {
-		folders += "/plugin/data/heimdall/data/*.db"
+	if all {
+		folders += "/plugin/data/heimdall /plugin/data/erigon"
+	} else {
+		if erigon {
+			folders += "/plugin/data/erigon/bor /plugin/data/erigon/chaindata "
+		}
+		if heimdall {
+			folders += "/plugin/data/heimdall/data/*.db"
+		}
 	}
 	err := utils.RemoveHostFolderUsingContainer("/plugin", storage, folders)
 	if err != nil {
@@ -171,12 +170,7 @@ func removeData(erigon bool, heimdall bool) bool {
 
 // uninstallTask is an example task for uninstallation purposes
 func uninstallTask(args map[string]string) string {
-	if len(args) > 0 {
-		utils.WriteError("Too many arguments")
-		return RESULT_ERROR
-	}
-
-	if !removeData(true, true) {
+	if !removeData(true, true, true) {
 		return RESULT_ERROR
 	}
 

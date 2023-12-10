@@ -72,6 +72,7 @@ describe('KeepixPolygonPlugin', function() {
 
     it('should be able to install', async function() {
         const result = await execute({"key":"install","ethereumRPC":"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm","testnet":"true"});
+        console.log(result)
         expect(result.jsonResult).to.equal("true");
     });
 
@@ -84,16 +85,17 @@ describe('KeepixPolygonPlugin', function() {
         const result = await execute({"key":"start"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
+        await delay(30000);
     });
 
     it('should be able to restart the nodes', async function() {
         const result = await execute({"key":"restart"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
+        await delay(30000);
     });
 
     it('should be able to report status', async function() {
-        await delay(10000);
         const result = await execute({"key":"status"});
         console.log(result)
         expect(result.jsonResult).to.equal(`{"NodeState":"NodeStarted","Alive":true,"IsRegistered":false}`);
@@ -125,11 +127,13 @@ describe('KeepixPolygonPlugin', function() {
         const result = await execute({"key":"resync","erigon":"true","heimdall":"true"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
+        await delay(10000);
     });
 
     it('should be able to stop the nodes', async function() {
         const result = await execute({"key":"stop"});
         expect(result.jsonResult).to.equal("true");
+        await delay(10000);
     });
 
     it('should be able to uninstall', async function() {

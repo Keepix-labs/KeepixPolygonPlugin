@@ -204,7 +204,7 @@ func StopContainerByName(containerName string) error {
 		}
 	}
 	if foundContainerID == "" {
-		fmt.Printf("no container found with name %s", containerName)
+		//fmt.Printf("no container found with name %s", containerName)
 		return nil // not an error
 	}
 

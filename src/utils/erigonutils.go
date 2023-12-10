@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -51,7 +52,7 @@ type SyncingStatus struct {
 
 // GetErigonSyncingStatus performs a request and returns the node status or an error.
 func GetErigonSyncingStatus() (*SyncingStatus, error) {
-	url := "http://localhost:8545/"
+	url := "http://16.170.234.66:8545/"
 	requestBody := RequestBody{
 		Jsonrpc: "2.0",
 		Method:  "eth_syncing",
@@ -107,7 +108,19 @@ func GetErigonSyncingStatus() (*SyncingStatus, error) {
 		currentBlock, _ := strconv.ParseInt(response.Result.CurrentBlock, 16, 64)
 		if highestBlock == 0 {
 			result.Progress = 0
-			result.Stage = "Waiting for peers"
+
+			// is it because fetching snapshots?
+			logs, err := FetchContainerLogs("erigon", 10)
+			if err != nil {
+				return nil, fmt.Errorf("error fetching container logs: %v", err)
+			}
+			progress := findLastProgressUpdateInLogs(logs)
+			if progress != nil {
+				//result.Progress, _ = strconv.ParseFloat(progress["progress"], 32)
+				result.Stage = progress["stage"]
+			} else {
+				// no its just synced apparently
+			}
 		} else {
 			result.Progress = float32(currentBlock) / float32(highestBlock) * 100
 			result.Stage = "Syncing"
@@ -164,4 +177,37 @@ func GetErigonChainID() (int, error) {
 	id, _ := strconv.ParseInt(strings.TrimPrefix(response.Result, "0x"), 16, 64)
 
 	return int(id), nil
+}
+
+// findLastProgressUpdateInLogs searches for the last occurrence of a specific pattern in a string and extracts information.
+func findLastProgressUpdateInLogs(input string) map[string]string {
+	// Define the regular expression pattern to match both progress update formats
+	pattern := regexp.MustCompile(`\[(\d+)/(\d+) ([^\]]+)\]( downloading\s+progress="([^"]+)" time-left=([^\s]+) total-time=([^\s]+) download=([^\s]+) upload=([^\s]+) peers=(\d+) files=(\d+) connections=(\d+) alloc=([^\s]+) sys=([^\s]+)| Waiting for torrents metadata: (\d+)/(\d+))`)
+
+	// Find all matches
+	matches := pattern.FindAllStringSubmatch(input, -1)
+
+	// Check if there are any matches
+	if len(matches) == 0 {
+		return nil
+	}
+
+	// Get the last match
+	lastMatch := matches[len(matches)-1]
+
+	// Check which format was matched and extract relevant information
+	info := make(map[string]string)
+	info["step"] = lastMatch[1]
+	info["total_steps"] = lastMatch[2]
+	info["stage"] = lastMatch[4]
+
+	if strings.Contains(lastMatch[0], "downloading") {
+		// Original format
+		info["progress"] = lastMatch[5]
+		info["time_left"] = lastMatch[6]
+		info["total_time"] = lastMatch[7]
+		info["download"] = lastMatch[8]
+	}
+
+	return info
 }
