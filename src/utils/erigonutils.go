@@ -117,7 +117,7 @@ func GetErigonSyncingStatus() (*SyncingStatus, error) {
 			progress := findLastProgressUpdateInLogs(logs)
 			if progress != nil {
 				//result.Progress, _ = strconv.ParseFloat(progress["progress"], 32)
-				result.Stage = progress["stage"]
+				result.Stage = fmt.Sprintf("Downloading snapshots [%s/%s]:%s", progress["step"], progress["total_steps"], progress["stage"])
 			} else {
 				// no its just synced apparently
 			}
