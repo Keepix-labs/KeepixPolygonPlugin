@@ -22,7 +22,7 @@ const (
 	StartingNode
 	StartingHeimdall
 	StartingRestServer
-	StartingBor
+	StartingErigon
 	NodeStarted
 	NodeRestarting
 	// Add new states here...
@@ -60,8 +60,8 @@ func CurrentStateString() string {
 		return "StartingHeimdall"
 	case StartingRestServer:
 		return "StartingRestServer"
-	case StartingBor:
-		return "StartingBor"
+	case StartingErigon:
+		return "StartingErigon"
 	case NodeStarted:
 		return "NodeStarted"
 	case NodeRestarting:

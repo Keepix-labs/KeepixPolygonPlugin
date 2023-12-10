@@ -14,6 +14,7 @@ func startTask(args map[string]string) string {
 
 	if appstate.CurrentState.State <= appstate.StartingHeimdall {
 		appstate.UpdateState(appstate.StartingHeimdall)
+		_ = utils.StopContainerByName("heimdall") // try and stop heimdall if it's already running
 		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"start", "--home=/heimdall-home"}, "/heimdall-home", localPathHeimdall, []uint{26657, 26656}, true, "polygon", true, "heimdall", false)
 		if err != nil {
 			utils.WriteError("Error during heimdall start:" + err.Error())
@@ -25,29 +26,29 @@ func startTask(args map[string]string) string {
 	}
 
 	if appstate.CurrentState.State <= appstate.StartingRestServer {
+		_ = utils.StopContainerByName("heimdall-rest") // try and stop heimdall-rest if it's already running
 		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"rest-server", "--home=/heimdall-home", "--node=tcp://heimdall:26657"}, "/heimdall-home", localPathHeimdall, []uint{1317}, true, "polygon", true, "heimdall-rest", false)
 		if err != nil {
 			utils.WriteError("Error during heimdall rest server start:" + err.Error())
 			return RESULT_ERROR
 		} else {
 			fmt.Print(output)
-			appstate.UpdateState(appstate.StartingBor)
+			appstate.UpdateState(appstate.StartingErigon)
 		}
 	}
 
-	if appstate.CurrentState.State <= appstate.StartingBor {
-		//erigon --chain=mumbai --bor.heimdall=<your heimdall url> --datadir=<your_data_dir>
+	if appstate.CurrentState.State <= appstate.StartingErigon {
 		chainArg := "--chain=bor-mainnet"
 		if appstate.CurrentState.IsTestnet {
 			chainArg = "--chain=mumbai"
 		}
+		_ = utils.StopContainerByName("erigon") // try and stop erigon if it's already running
 		output, err := utils.DockerRun("thorax/erigon:v2.53.4", []string{"--datadir=/erigon-home", "--bor.heimdall=http://heimdall-rest:1317", "--private.api.addr=0.0.0.0:9090", "--http.addr=0.0.0.0", chainArg}, "/erigon-home", localPathErigon, []uint{30303, 8545, 9090}, true, "polygon", true, "erigon", false)
 		if err != nil {
 			utils.WriteError("Error during erigon start:" + err.Error())
 			return RESULT_ERROR
 		} else {
 			fmt.Print(output)
-			appstate.UpdateState(appstate.StartingBor)
 		}
 	}
 
