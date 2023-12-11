@@ -183,7 +183,7 @@ func GetErigonChainID() (int, error) {
 // findLastProgressUpdateInLogs searches for the last occurrence of a specific pattern in a string and extracts information.
 func findLastProgressUpdateInLogs(input string) map[string]string {
 	// Define the regular expression pattern to match both progress update formats
-	pattern := regexp.MustCompile(`\[(\d+)/(\d+) ([^\]]+)\]( downloading\s+progress="([^"]+)" time-left=([^\s]+)| Waiting for torrents metadata: (\d+)/(\d+))`)
+	pattern := regexp.MustCompile(`\[(\d+)/(\d+) ([^\]]+)\]( downloading\s+progress="([^"]+)" time-left=([^\s]+)| Waiting for torrents metadata: (\d+)/(\d+)| Indexing| Total)`)
 
 	// Find all matches
 	matches := pattern.FindAllStringSubmatch(input, -1)
@@ -195,6 +195,11 @@ func findLastProgressUpdateInLogs(input string) map[string]string {
 
 	// Get the last match
 	lastMatch := matches[len(matches)-1]
+
+	// override the stage name if it's "Total" as its still part of the indexing process
+	if lastMatch[4] == " Total" {
+		lastMatch[4] = " Indexing"
+	}
 
 	// Check which format was matched and extract relevant information
 	info := make(map[string]string)
