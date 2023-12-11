@@ -104,8 +104,8 @@ func GetErigonSyncingStatus() (*SyncingStatus, error) {
 	}
 
 	if isSyncing {
-		highestBlock, _ := strconv.ParseInt(response.Result.HighestBlock, 16, 64)
-		currentBlock, _ := strconv.ParseInt(response.Result.CurrentBlock, 16, 64)
+		highestBlock, _ := strconv.ParseInt(strings.TrimPrefix(response.Result.HighestBlock, "0x"), 16, 64)
+		currentBlock, _ := strconv.ParseInt(strings.TrimPrefix(response.Result.CurrentBlock, "0x"), 16, 64)
 		if highestBlock == 0 {
 			result.Progress = 0
 			result.Stage = "Waiting for Heimdall sync"
