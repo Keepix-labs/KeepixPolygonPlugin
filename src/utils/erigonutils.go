@@ -52,7 +52,7 @@ type SyncingStatus struct {
 
 // GetErigonSyncingStatus performs a request and returns the node status or an error.
 func GetErigonSyncingStatus() (*SyncingStatus, error) {
-	url := "http://16.170.234.66:8545/"
+	url := "http://localhost:8545/"
 	requestBody := RequestBody{
 		Jsonrpc: "2.0",
 		Method:  "eth_syncing",
