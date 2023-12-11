@@ -108,6 +108,7 @@ func GetErigonSyncingStatus() (*SyncingStatus, error) {
 		currentBlock, _ := strconv.ParseInt(response.Result.CurrentBlock, 16, 64)
 		if highestBlock == 0 {
 			result.Progress = 0
+			result.Stage = "Waiting for Heimdall sync"
 
 			// is it because fetching snapshots?
 			logs, err := FetchContainerLogs("erigon", 10)
