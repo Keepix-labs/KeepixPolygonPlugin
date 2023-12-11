@@ -30,7 +30,7 @@ var TaskRequirements = map[string][]string{
 	"resync":     {"docker", "installed"},
 	"restart":    {"docker", "running"},
 	"logs":       {"docker", "running"},
-	"chain":      {"docker", "running"},
+	"chain":      {"docker", "installed"},
 }
 
 var TarkArgs = map[string][]string{

@@ -31,7 +31,7 @@ func installTask(args map[string]string) string {
 
 	if appstate.CurrentState.State <= appstate.InstallingNode {
 		// not installed yet
-
+		fmt.Println("Installing node")
 		appstate.UpdateState(appstate.InstallingNode)
 
 		err := utils.PullImage("0xpolygon/heimdall:1.0.3")
@@ -67,10 +67,12 @@ func installTask(args map[string]string) string {
 			fmt.Print(version)
 		}
 
+		fmt.Println("Successfully installed heimdall")
 		appstate.UpdateState(appstate.ConfiguringHeimdall)
 	}
 
 	if appstate.CurrentState.State <= appstate.ConfiguringHeimdall {
+		fmt.Println("Configuring heimdall...")
 		// init heimdall
 		err := os.RemoveAll(localPathHeimdall) // clear config if any
 		if err != nil {
@@ -85,13 +87,16 @@ func installTask(args map[string]string) string {
 		chainArg := "--chain=mainnet"
 		if isTestnet {
 			chainArg = "--chain=mumbai"
+			fmt.Println("Configuring heimdall for mumbai testnet")
+		} else {
+			fmt.Println("Configuring heimdall for mainnet")
 		}
-		output, err := utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"init", "--home=/heimdall-home", chainArg}, "/heimdall-home", localPathHeimdall, []uint{}, false, "", false, "initializer", true)
+		_, err = utils.DockerRun("0xpolygon/heimdall:1.0.3", []string{"init", "--home=/heimdall-home", chainArg}, "/heimdall-home", localPathHeimdall, []uint{}, false, "", false, "initializer", true)
 		if err != nil {
 			utils.WriteError("Error during heimdall init:" + err.Error())
 			return RESULT_ERROR
 		} else {
-			fmt.Print(output)
+			fmt.Println("Successfully initialized heimdall conf")
 		}
 
 		// configure
@@ -107,11 +112,12 @@ func installTask(args map[string]string) string {
 			utils.WriteError("Error during heimdall configure:" + err.Error())
 			return RESULT_ERROR
 		}
-
+		fmt.Println("Successfully configured heimdall")
 		appstate.UpdateState(appstate.ConfiguringErigon)
 	}
 
 	if appstate.CurrentState.State <= appstate.ConfiguringErigon {
+		fmt.Println("Configuring erigon...")
 		err := os.RemoveAll(localPathErigon) // clear config if any
 		if err != nil {
 			utils.WriteError("Error during erigon config:" + err.Error())
@@ -122,7 +128,7 @@ func installTask(args map[string]string) string {
 			utils.WriteError("Error during erigon config:" + err.Error())
 			return RESULT_ERROR
 		}
-
+		fmt.Println("Successfully configured erigon")
 		appstate.UpdateState(appstate.ConfiguringNetwork)
 	}
 
@@ -135,7 +141,7 @@ func installTask(args map[string]string) string {
 			utils.WriteError("Error creating docker network:" + err.Error())
 			return RESULT_ERROR
 		}
-
+		fmt.Println("Successfully installed node")
 		appstate.UpdateState(appstate.NodeInstalled)
 	}
 
@@ -174,6 +180,8 @@ func uninstallTask(args map[string]string) string {
 		return RESULT_ERROR
 	}
 
+	fmt.Println("Removing images and their containers...")
+
 	err := utils.RemoveImageIfExists("0xpolygon/heimdall:1.0.3")
 	if err != nil {
 		utils.WriteError("Error removing image:" + err.Error())
@@ -186,11 +194,15 @@ func uninstallTask(args map[string]string) string {
 		return RESULT_ERROR
 	}
 
+	fmt.Println("Successfully removed docker images")
+
 	err = utils.RemoveDockerNetworkIfExists("polygon")
 	if err != nil {
 		utils.WriteError("Error removing docker network:" + err.Error())
 		return RESULT_ERROR
 	}
+
+	fmt.Println("Removing plugin data")
 	storage, _ := appstate.GetStoragePath()
 	// remove rest of plugin data
 	err = os.RemoveAll(storage)
@@ -198,5 +210,6 @@ func uninstallTask(args map[string]string) string {
 		utils.WriteError("Error removing data folder:" + err.Error())
 		return RESULT_ERROR
 	}
+	fmt.Println("Successfully removed plugin data")
 	return RESULT_SUCCESS
 }

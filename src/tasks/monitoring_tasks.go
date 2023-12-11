@@ -96,15 +96,7 @@ type SyncState struct {
 }
 
 func getChainTask(args map[string]string) string {
-	chain, err := utils.GetErigonChainID()
-	if err != nil {
-		utils.WriteError("Error getting chain:" + err.Error())
-		return RESULT_ERROR
-	}
-
-	if chain == 0 {
-		return RESULT_ERROR
-	} else if chain == 137 {
+	if !appstate.CurrentState.IsTestnet {
 		return "mainnet"
 	} else {
 		return "testnet"
@@ -129,12 +121,12 @@ func syncStateTask(args map[string]string) string {
 	blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
 	currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
 
-	var progress2 float32
+	var progress float32
 	if !heimdallState.Result.SyncInfo.CatchingUp {
-		progress2 = 100
+		progress = 100
 		heimdallStepDescription = "Synced"
 	} else {
-		progress2 = float32(blockHeight) / float32(currentBlockHeight) * 100
+		progress = float32(blockHeight) / float32(currentBlockHeight) * 100
 		heimdallStepDescription = "Syncing"
 	}
 
@@ -145,7 +137,7 @@ func syncStateTask(args map[string]string) string {
 	status := &SyncState{
 		IsSynced:                !heimdallState.Result.SyncInfo.CatchingUp && erigonState.Stage == "Synced",
 		ErigonSyncProgress:      erigonState.Progress,
-		HeimdallSyncProgress:    progress2,
+		HeimdallSyncProgress:    progress,
 		ErigonStepDescription:   erigonState.Stage,
 		HeimdallStepDescription: heimdallStepDescription,
 	}

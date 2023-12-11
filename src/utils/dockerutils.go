@@ -261,11 +261,7 @@ func PullImage(imageName string) error {
 	}
 	defer cli.Close()
 
-	out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(os.Stdout, out)
+	_, err = cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
 	return err
 }
 
