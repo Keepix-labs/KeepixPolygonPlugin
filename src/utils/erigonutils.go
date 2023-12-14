@@ -115,7 +115,7 @@ func GetErigonSyncingStatus() (*SyncingStatus, error) {
 			result.Stage = "Waiting for Heimdall sync"
 
 			// is it because fetching snapshots?
-			logs, err := FetchContainerLogs("erigon", 10)
+			logs, err := FetchContainerLogs("erigon", 50)
 			if err != nil {
 				return nil, fmt.Errorf("error fetching container logs: %v", err)
 			}
