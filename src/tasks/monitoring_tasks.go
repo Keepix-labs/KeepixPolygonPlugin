@@ -25,6 +25,18 @@ func statusTask(args map[string]string) string {
 	_, err := utils.GetHeimdallNodeStatus()
 	_, err2 := utils.GetErigonSyncingStatus()
 
+	if !appstate.CurrentState.HeimdallSnapshotDownloaded {
+		progress, err := utils.SnapshotProgress()
+		if err != nil {
+			utils.WriteError("Error getting snapshot progress:" + err.Error())
+			return RESULT_ERROR
+		}
+		if progress >= 0 {
+			// no error if snapshot is not downloaded yet
+			err = nil
+		}
+	}
+
 	// Create an instance of NodeStatus
 	status := NodeStatus{
 		NodeState:    appstate.CurrentStateString(),
