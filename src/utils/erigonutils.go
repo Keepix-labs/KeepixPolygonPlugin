@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 // RequestBody represents the JSON payload for the request.
@@ -123,8 +127,31 @@ func GetErigonSyncingStatus() (*SyncingStatus, error) {
 				// no its just synced apparently
 			}
 		} else {
-			result.Progress = float32(currentBlock) / float32(highestBlock) * 100
-			result.Stage = "Syncing"
+			// check if we are still syncing
+			if currentBlock < highestBlock {
+				// find the current stage and display progress
+				// use for to parse through stages
+				var previousIndex int
+				for i, s := range response.Result.Stages {
+					if s.BlockNumber == "0x0" {
+						//previous stage is the current one
+						break
+					} else {
+						previousIndex = i
+					}
+				}
+
+				stage := response.Result.Stages[previousIndex]
+
+				totalStages := len(response.Result.Stages)
+				currentStage := previousIndex + 1
+
+				blockNumber, _ := strconv.ParseInt(strings.TrimPrefix(stage.BlockNumber, "0x"), 16, 32)
+
+				result.Progress = float32(blockNumber) / float32(highestBlock) * (float32(currentStage) / float32(totalStages)) * 100
+				result.Stage = fmt.Sprintf("[%v/%v] %v", currentStage, totalStages, stage.StageName)
+			}
+
 		}
 	}
 
@@ -135,6 +162,31 @@ type responseChainIDBody struct {
 	Jsonrpc string `json:"jsonrpc"`
 	ID      int    `json:"id"`
 	Result  string `json:"result"`
+}
+
+// IsContainerRunning checks if a container with the given name is running.
+func IsContainerRunning(containerName string) (bool, error) {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return false, err
+	}
+	defer cli.Close()
+
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	for _, container := range containers {
+		for _, name := range container.Names {
+			if name == "/"+containerName && container.State == "running" {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 // GetErigonChainID performs a request and returns the node status or an error.

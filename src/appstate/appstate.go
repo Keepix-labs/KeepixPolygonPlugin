@@ -29,8 +29,9 @@ const (
 )
 
 type AppState struct {
-	State     AppStateEnum `json:"state"`
-	IsTestnet bool         `json:"isTestnet"`
+	State                      AppStateEnum `json:"state"`
+	IsTestnet                  bool         `json:"isTestnet"`
+	HeimdallSnapshotDownloaded bool         `json:"heimdallSnapshotDownloaded"`
 }
 
 // CurrentState holds the current state of the application.
@@ -80,6 +81,11 @@ func UpdateState(newState AppStateEnum) error {
 // UpdateState updates the current state and writes it to disk.
 func UpdateChain(isTestnet bool) error {
 	CurrentState.IsTestnet = isTestnet
+	return writeStateToFile(CurrentState)
+}
+
+func UpdateSnapshotDownloaded(downloaded bool) error {
+	CurrentState.HeimdallSnapshotDownloaded = downloaded
 	return writeStateToFile(CurrentState)
 }
 

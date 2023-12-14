@@ -14,6 +14,39 @@ func startTask(args map[string]string) string {
 
 	fmt.Println("Starting node...")
 
+	// check if heimdall was already snapshoted
+	if !appstate.CurrentState.HeimdallSnapshotDownloaded {
+		fmt.Println("Heimdall needs to be snapshoted before starting")
+		fmt.Println("Downloading heimdall snapshot...")
+		network := "mainnet"
+		if appstate.CurrentState.IsTestnet {
+			network = "mumbai"
+		}
+		err := utils.RunSnapshotDownloader(localPathHeimdall, network)
+		if err != nil {
+			utils.WriteError("Error downloading heimdall snapshot:" + err.Error())
+			return RESULT_ERROR
+		} else {
+			fmt.Println("Successfully started downloading heimdall snapshot")
+			fmt.Println("You will need to manually restart heimdall after snapshot was downloaded")
+			// download started, we will boot heimdall nodes later
+			appstate.UpdateState(appstate.StartingErigon)
+		}
+	} else {
+		validated, err := utils.ValidateSnapshot(localPathHeimdall)
+		if err != nil {
+			utils.WriteError("Error validating heimdall snapshot:" + err.Error())
+			return RESULT_ERROR
+		}
+		if validated {
+			appstate.UpdateSnapshotDownloaded(true)
+			appstate.UpdateState(appstate.StartingHeimdall)
+		} else {
+			utils.WriteError("Heimdall snapshot is invalid, please reinstall and try again")
+			return RESULT_ERROR
+		}
+	}
+
 	if appstate.CurrentState.State <= appstate.StartingHeimdall {
 		fmt.Println("Starting Heimdall...")
 		appstate.UpdateState(appstate.StartingHeimdall)
@@ -51,7 +84,12 @@ func startTask(args map[string]string) string {
 			fmt.Println("Erigon will start on mainnet")
 		}
 		_ = utils.StopContainerByName("erigon") // try and stop erigon if it's already running
-		_, err := utils.DockerRun("thorax/erigon:v2.53.4", []string{"--datadir=/erigon-home", "--bor.heimdall=http://heimdall-rest:1317", "--private.api.addr=0.0.0.0:9090", "--http.addr=0.0.0.0", chainArg}, "/erigon-home", localPathErigon, []uint{30303, 8545, 9090}, true, "polygon", true, "erigon", false)
+		extip, err := utils.GetExternalIP()
+		if err != nil {
+			utils.WriteError("Error getting external IP:" + err.Error())
+			return RESULT_ERROR
+		}
+		_, err = utils.DockerRun("thorax/erigon:v2.53.4", []string{"--datadir=/erigon-home", "--bor.heimdall=http://heimdall-rest:1317", "--private.api.addr=0.0.0.0:9090", "--http.addr=0.0.0.0", fmt.Sprintf("--nat=extip:%s", extip), "--db.size.limit=7697000000000", chainArg}, "/erigon-home", localPathErigon, []uint{30303, 30304, 8545, 9090}, true, "polygon", true, "erigon", false)
 		if err != nil {
 			utils.WriteError("Error during erigon start:" + err.Error())
 			return RESULT_ERROR
@@ -113,6 +151,7 @@ func resyncTask(args map[string]string) string {
 		utils.WriteError("Error removing data")
 		return RESULT_ERROR
 	}
+	appstate.UpdateSnapshotDownloaded(false)
 	res = startTask(map[string]string{})
 	if res != RESULT_SUCCESS {
 		utils.WriteError("Error starting node")

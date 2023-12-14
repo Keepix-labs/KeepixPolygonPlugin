@@ -104,11 +104,6 @@ func getChainTask(args map[string]string) string {
 }
 
 func syncStateTask(args map[string]string) string {
-	heimdallState, err := utils.GetHeimdallNodeStatus()
-	if err != nil {
-		utils.WriteError("Error getting heimdall node status:" + err.Error())
-		return RESULT_ERROR
-	}
 
 	erigonState, err := utils.GetErigonSyncingStatus()
 	if err != nil {
@@ -117,25 +112,44 @@ func syncStateTask(args map[string]string) string {
 	}
 
 	var heimdallStepDescription string
-
-	blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
-	currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
-
 	var progress float32
-	if !heimdallState.Result.SyncInfo.CatchingUp {
-		progress = 100
-		heimdallStepDescription = "Synced"
-	} else {
-		progress = float32(blockHeight) / float32(currentBlockHeight) * 100
-		heimdallStepDescription = "Syncing"
-	}
+	var heimdallSynced = false
 
-	if blockHeight == 0 {
-		heimdallStepDescription = "Waiting for peers"
+	if appstate.CurrentState.HeimdallSnapshotDownloaded {
+		heimdallState, err := utils.GetHeimdallNodeStatus()
+		if err != nil {
+			utils.WriteError("Error getting heimdall node status:" + err.Error())
+			return RESULT_ERROR
+		}
+
+		blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
+		currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
+
+		if !heimdallState.Result.SyncInfo.CatchingUp {
+			progress = 100
+			heimdallStepDescription = "Synced"
+		} else {
+			progress = float32(blockHeight) / float32(currentBlockHeight) * 100
+			heimdallStepDescription = "Syncing"
+		}
+
+		if blockHeight == 0 {
+			heimdallStepDescription = "Waiting for peers"
+		}
+
+		heimdallSynced = !heimdallState.Result.SyncInfo.CatchingUp
+	} else {
+		heimdallStepDescription = "Downloading snapshot"
+
+		progress, err = utils.SnapshotProgress()
+		if err != nil {
+			utils.WriteError("Error getting snapshot progress:" + err.Error())
+			return RESULT_ERROR
+		}
 	}
 
 	status := &SyncState{
-		IsSynced:                !heimdallState.Result.SyncInfo.CatchingUp && erigonState.Stage == "Synced",
+		IsSynced:                heimdallSynced && erigonState.Stage == "Synced",
 		ErigonSyncProgress:      erigonState.Progress,
 		HeimdallSyncProgress:    progress,
 		ErigonStepDescription:   erigonState.Stage,
