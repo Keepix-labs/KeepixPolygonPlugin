@@ -16,35 +16,30 @@ func startTask(args map[string]string) string {
 
 	// check if heimdall was already snapshoted
 	if !appstate.CurrentState.HeimdallSnapshotDownloaded {
-		fmt.Println("Heimdall needs to be snapshoted before starting")
-		fmt.Println("Downloading heimdall snapshot...")
-		network := "mainnet"
-		if appstate.CurrentState.IsTestnet {
-			network = "mumbai"
-		}
-		err := utils.RunSnapshotDownloader(localPathHeimdall, network)
-		if err != nil {
-			utils.WriteError("Error downloading heimdall snapshot:" + err.Error())
-			return RESULT_ERROR
-		} else {
-			fmt.Println("Successfully started downloading heimdall snapshot")
-			fmt.Println("You will need to manually restart heimdall after snapshot was downloaded")
-			// download started, we will boot heimdall nodes later
-			appstate.UpdateState(appstate.StartingErigon)
-		}
-	} else {
-		validated, err := utils.ValidateSnapshot(localPathHeimdall)
-		if err != nil {
-			utils.WriteError("Error validating heimdall snapshot:" + err.Error())
-			return RESULT_ERROR
-		}
+		// check if already downloaded
+		validated, _ := utils.ValidateSnapshot(localPathHeimdall)
 		if validated {
 			appstate.UpdateSnapshotDownloaded(true)
 			appstate.UpdateState(appstate.StartingHeimdall)
 		} else {
-			utils.WriteError("Heimdall snapshot is invalid, please reinstall and try again")
-			return RESULT_ERROR
+			fmt.Println("Heimdall needs to be snapshoted before starting")
+			fmt.Println("Downloading heimdall snapshot...")
+			network := "mainnet"
+			if appstate.CurrentState.IsTestnet {
+				network = "mumbai"
+			}
+			err := utils.RunSnapshotDownloader(localPathHeimdall, network)
+			if err != nil {
+				utils.WriteError("Error downloading heimdall snapshot:" + err.Error())
+				return RESULT_ERROR
+			} else {
+				fmt.Println("Successfully started downloading heimdall snapshot")
+				fmt.Println("You will need to manually restart heimdall after snapshot was downloaded")
+				// download started, we will boot heimdall nodes later
+				appstate.UpdateState(appstate.StartingErigon)
+			}
 		}
+
 	}
 
 	if appstate.CurrentState.State <= appstate.StartingHeimdall {

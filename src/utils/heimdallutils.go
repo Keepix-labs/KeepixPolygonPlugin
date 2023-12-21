@@ -67,7 +67,7 @@ func RunSnapshotDownloader(hostHeimdallPath string, network string) error {
 	}
 	defer cli.Close()
 
-	command := fmt.Sprintf(`apk add aria2 curl bash zstd pv && curl -L https://snapshot-download.polygon.technology/snapdown.sh | bash -s -- --network %s --client heimdall --extract-dir /heimdall/data`, network)
+	command := fmt.Sprintf(`apk add aria2 curl bash zstd pv tar && curl -L https://snapshot-download.polygon.technology/snapdown.sh | bash -s -- --network %s --client heimdall --extract-dir /heimdall/data`, network)
 	tempContainerConfig := container.Config{
 		Image: "alpine:latest",
 		Cmd:   []string{"sh", "-c", command},
@@ -103,12 +103,19 @@ func ValidateSnapshot(hostHeimdallPath string) (bool, error) {
 		return false, nil
 	}
 	// get container logs
-	_, err = FetchContainerLogs("heimdall-snapshot-downloader", 1)
+	logs, err := FetchContainerLogs("heimdall-snapshot-downloader", 10)
 	if err != nil {
 		return false, fmt.Errorf("error getting logs from snapshot downloader: %v", err)
 	}
 	// check if last line of the output is a valid download
-
+	// Remove non-numeric characters
+	pattern := regexp.MustCompile(`Command succeeded`)
+	// Find all matches
+	matches := pattern.FindAllStringSubmatch(logs, -1)
+	success := len(matches) > 0
+	if !success {
+		return false, nil
+	}
 	// remove image and container
 	err = RemoveImageIfExists("alpine:latest")
 	if err != nil {

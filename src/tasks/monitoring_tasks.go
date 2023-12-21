@@ -27,10 +27,6 @@ func statusTask(args map[string]string) string {
 
 	if !appstate.CurrentState.HeimdallSnapshotDownloaded {
 		_, err = utils.SnapshotProgress()
-		if err != nil {
-			utils.WriteError("Error getting snapshot progress:" + err.Error())
-			return RESULT_ERROR
-		}
 	}
 
 	// Create an instance of NodeStatus
@@ -153,6 +149,9 @@ func syncStateTask(args map[string]string) string {
 		if err != nil {
 			utils.WriteError("Error getting snapshot progress:" + err.Error())
 			return RESULT_ERROR
+		}
+		if progress == 100 {
+			heimdallStepDescription = "Snapshot downloaded, restart Heimdall"
 		}
 	}
 

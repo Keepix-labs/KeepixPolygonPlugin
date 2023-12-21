@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -135,7 +136,7 @@ func RemoveHostFolderUsingContainer(containerPath, hostPath string, folders stri
 
 	// Define configuration for a temporary container
 	tempContainerConfig := container.Config{
-		Image: "alpine",
+		Image: "alpine:latest",
 		Cmd:   []string{"sh", "-c", "rm -rf " + folders},
 	}
 
@@ -261,8 +262,17 @@ func PullImage(imageName string) error {
 	}
 	defer cli.Close()
 
-	_, err = cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
-	return err
+	out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(ioutil.Discard, out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // RemoveImage removes a Docker image and any containers created from it.
