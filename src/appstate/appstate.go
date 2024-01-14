@@ -28,14 +28,21 @@ const (
 	// Add new states here...
 )
 
+type Account struct {
+	Address string `json:"address"`
+	PK      string `json:"pk"`
+}
+
 type AppState struct {
 	State                      AppStateEnum `json:"state"`
 	IsTestnet                  bool         `json:"isTestnet"`
 	HeimdallSnapshotDownloaded bool         `json:"heimdallSnapshotDownloaded"`
+	Wallet                     Account      `json:"wallet"`
+	RPC                        string       `json:"rpc"`
 }
 
 // CurrentState holds the current state of the application.
-var CurrentState AppState = AppState{State: NoState, IsTestnet: false}
+var CurrentState AppState = AppState{State: NoState, IsTestnet: false, Wallet: Account{Address: "", PK: ""}}
 
 func CurrentStateString() string {
 	switch CurrentState.State {
@@ -78,14 +85,28 @@ func UpdateState(newState AppStateEnum) error {
 	return writeStateToFile(CurrentState)
 }
 
-// UpdateState updates the current state and writes it to disk.
+// UpdateChain updates the current state and writes it to disk.
 func UpdateChain(isTestnet bool) error {
 	CurrentState.IsTestnet = isTestnet
 	return writeStateToFile(CurrentState)
 }
 
+// UpdateAccount updates the current state and writes it to disk.
+func UpdateAccount(privateKey string, publicKey string) error {
+	CurrentState.Wallet.Address = publicKey
+	CurrentState.Wallet.PK = privateKey
+	return writeStateToFile(CurrentState)
+}
+
+// UpdateSnapshotDownloaded updates the current state and writes it to disk.
 func UpdateSnapshotDownloaded(downloaded bool) error {
 	CurrentState.HeimdallSnapshotDownloaded = downloaded
+	return writeStateToFile(CurrentState)
+}
+
+// UpdateSnapshotDownloaded updates the current state and writes it to disk.
+func UpdateRPC(rpc string) error {
+	CurrentState.RPC = rpc
 	return writeStateToFile(CurrentState)
 }
 

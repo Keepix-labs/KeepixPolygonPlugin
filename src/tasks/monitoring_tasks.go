@@ -15,9 +15,8 @@ func installedTask(args map[string]string) string {
 }
 
 type NodeStatus struct {
-	NodeState    string `json:"NodeState"`
-	Alive        bool   `json:"Alive"`
-	IsRegistered bool   `json:"IsRegistered"`
+	NodeState string `json:"NodeState"`
+	Alive     bool   `json:"Alive"`
 }
 
 // returns plugins status
@@ -31,9 +30,8 @@ func statusTask(args map[string]string) string {
 
 	// Create an instance of NodeStatus
 	status := NodeStatus{
-		NodeState:    appstate.CurrentStateString(),
-		Alive:        err == nil && err2 == nil,
-		IsRegistered: false,
+		NodeState: appstate.CurrentStateString(),
+		Alive:     err == nil && err2 == nil,
 	}
 
 	// Serialize the struct to JSON

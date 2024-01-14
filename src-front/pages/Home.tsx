@@ -88,7 +88,7 @@ export default function HomePage() {
       )}
       {statusQuery?.data
         && statusQuery.data?.NodeState === 'NodeStarted'
-        && walletQuery.data?.Wallet === undefined && (<>
+        && walletQuery.data?.Wallet === "" && (<>
           setup wallet
       </>)}
 
@@ -160,14 +160,9 @@ export default function HomePage() {
       )}
       
       {/* stake MATIC */}
-      {stakeDisplay
-        && statusQuery?.data && syncProgressQuery?.data
-        /*&& syncProgressQuery?.data?.IsSynced === true*/
-        && statusQuery.data?.NodeState === 'NodeStarted'
-        /*&& walletQuery.data?.Wallet !== undefined*/
-        /*&& statusQuery.data?.IsRegistered === true*/
+      {stakeDisplay && walletQuery.data && walletQuery.data?.Wallet !== ""
         && (<>
-          <Staking wallet={walletQuery.data?.Wallet} status={statusQuery?.data} backFn={() => { setStakeDisplay(false); }}></Staking>
+          <Staking wallet={walletQuery.data.Wallet} ethBalance={walletQuery.data.ethBalance} maticBalance={walletQuery.data.maticBalance} backFn={() => { setStakeDisplay(false); }}></Staking>
       </>)}
       <Sprites></Sprites>
     </div>

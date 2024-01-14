@@ -24,6 +24,7 @@ func installTask(args map[string]string) string {
 	isTestnet := args["testnet"] == "true"
 
 	appstate.UpdateChain(isTestnet)
+	appstate.UpdateRPC(ethereumRPC)
 
 	storage, _ := appstate.GetStoragePath()
 	localPathHeimdall := path.Join(storage, "data", "heimdall")
