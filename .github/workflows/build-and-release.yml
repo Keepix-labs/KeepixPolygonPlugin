@@ -54,9 +54,10 @@ jobs:
       # Upload compressed files to the release
       - name: Upload Release Assets
         run: |
-          for file in compressed/*; do
+            for file in compressed/*; do
             echo "Uploading $file"
-            gh release upload ${{ steps.create_release.outputs.upload_url }} $file
-          done
+            gh release upload ${{ github.ref_name }} $file
+            done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
