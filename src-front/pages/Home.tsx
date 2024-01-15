@@ -23,12 +23,12 @@ const faqSyncProgress: any[] = [
     desc: "No, it's not necessary, but if you're on your own computer, please leave it running."
   },
   {
-    title: "Why Bor is not syncing while Heimdall is syncing?",
-    desc: "The Bor node needs to wait for the Heimdall node to be fully synchronized before starting its synchronization."
+    title: "Why Erigon is not syncing while Heimdall is syncing?",
+    desc: "The Erigon node needs to wait for the Heimdall node to be fully synchronized before starting its synchronization."
   },
   {
-    title: "Heimdall finished syncing but Bor is still at 0%?",
-    desc: "Resync Bor and wait for a few minutes.",
+    title: "Heimdall finished syncing but Erigon is still at 0%?",
+    desc: "Resync Erigon and wait for a few minutes.",
   }
 ];
 
@@ -62,7 +62,7 @@ export default function HomePage() {
   //syncProgressQuery?.data?.IsSynced === true
 
   const canStart = () => {
-    const acceptedStates = ['NoState', 'NodeInstalled', 'StartingNode', "StartingHeimdall", "StartingBor"];
+    const acceptedStates = ['NodeInstalled', 'StartingNode', "StartingHeimdall", "StartingErigon"];
     return acceptedStates.includes(statusQuery?.data?.NodeState ?? '');
   }
 
@@ -88,7 +88,7 @@ export default function HomePage() {
       )}
       {statusQuery?.data
         && statusQuery.data?.NodeState === 'NodeStarted'
-        && walletQuery.data?.Wallet === undefined && (<>
+        && walletQuery.data?.Wallet === "" && (<>
           setup wallet
       </>)}
 
@@ -111,8 +111,8 @@ export default function HomePage() {
         /*&& walletQuery.data?.Wallet !== undefined*/ && (
         <BigLoader title="Estimation: 1 hour to several days." disableLabel={true} full={true}>
           <div className="state-title">
-                <strong>{`Bor Sync Progress:`}</strong>
-                <Progress percent={Number(syncProgressQuery?.data.borSyncProgress)} description={syncProgressQuery?.data.borStepDescription ?? ''}></Progress>
+                <strong>{`Erigon Sync Progress:`}</strong>
+                <Progress percent={Number(syncProgressQuery?.data.erigonSyncProgress)} description={syncProgressQuery?.data.erigonStepDescription ?? ''}></Progress>
                 <strong>{`Heimdall Sync Progress:`}</strong>
                 <Progress percent={Number(syncProgressQuery?.data.heimdallSyncProgress)} description={syncProgressQuery?.data.heimdallStepDescription ?? ''}></Progress>
                 {/* <strong><Icon icon="svg-spinners:3-dots-scale" /></strong> */}
@@ -134,20 +134,20 @@ export default function HomePage() {
                 onClick={async () => {
                   setLoading(true);
                   try {
-                    const result = await postResync({ bor: "true", heimdall: "false" });
+                    const result = await postResync({ erigon: "true", heimdall: "false" });
                     console.log('NICEE', result);
                   } catch (e) {
                     console.log(e);
                   }
                   setLoading(false);
                 }}
-              >Re-sync Bor</Btn>
+              >Re-sync Erigon</Btn>
               <Btn
                 status="warning"
                 onClick={async () => {
                   setLoading(true);
                   try {
-                    const result = await postResync({ bor: "false", heimdall: "true" });
+                    const result = await postResync({ erigon: "false", heimdall: "true" });
                     console.log('NICEE', result);
                   } catch (e) {
                     console.log(e);
@@ -160,14 +160,9 @@ export default function HomePage() {
       )}
       
       {/* stake MATIC */}
-      {stakeDisplay
-        && statusQuery?.data && syncProgressQuery?.data
-        /*&& syncProgressQuery?.data?.IsSynced === true*/
-        && statusQuery.data?.NodeState === 'NodeStarted'
-        /*&& walletQuery.data?.Wallet !== undefined*/
-        /*&& statusQuery.data?.IsRegistered === true*/
+      {stakeDisplay && walletQuery.data && walletQuery.data?.Wallet !== ""
         && (<>
-          <Staking wallet={walletQuery.data?.Wallet} status={statusQuery?.data} backFn={() => { setStakeDisplay(false); }}></Staking>
+          <Staking wallet={walletQuery.data.Wallet} ethBalance={walletQuery.data.ethBalance} maticBalance={walletQuery.data.maticBalance} backFn={() => { setStakeDisplay(false); }}></Staking>
       </>)}
       <Sprites></Sprites>
     </div>

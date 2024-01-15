@@ -1,7 +1,10 @@
 package appstate
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -16,23 +19,36 @@ const (
 	StartingInstall
 	InstallingNode
 	ConfiguringHeimdall
-	ConfiguringBor
+	ConfiguringErigon
 	ConfiguringNetwork
 	NodeInstalled
 	StartingNode
 	StartingHeimdall
 	StartingRestServer
-	StartingBor
+	StartingErigon
 	NodeStarted
 	NodeRestarting
 	// Add new states here...
 )
 
+type Account struct {
+	Address string `json:"address"`
+	PK      string `json:"pk"`
+}
+
+type AppState struct {
+	State                      AppStateEnum `json:"state"`
+	IsTestnet                  bool         `json:"isTestnet"`
+	HeimdallSnapshotDownloaded bool         `json:"heimdallSnapshotDownloaded"`
+	Wallet                     Account      `json:"wallet"`
+	RPC                        string       `json:"rpc"`
+}
+
 // CurrentState holds the current state of the application.
-var CurrentState AppStateEnum = NoState
+var CurrentState AppState = AppState{State: NoState, IsTestnet: false, Wallet: Account{Address: "", PK: ""}}
 
 func CurrentStateString() string {
-	switch CurrentState {
+	switch CurrentState.State {
 	case NoState:
 		return "NoState"
 	case SetupErrorState:
@@ -43,8 +59,8 @@ func CurrentStateString() string {
 		return "InstallingNode"
 	case ConfiguringHeimdall:
 		return "ConfiguringHeimdall"
-	case ConfiguringBor:
-		return "ConfiguringBor"
+	case ConfiguringErigon:
+		return "ConfiguringErigon"
 	case ConfiguringNetwork:
 		return "ConfiguringNetwork"
 	case NodeInstalled:
@@ -55,8 +71,8 @@ func CurrentStateString() string {
 		return "StartingHeimdall"
 	case StartingRestServer:
 		return "StartingRestServer"
-	case StartingBor:
-		return "StartingBor"
+	case StartingErigon:
+		return "StartingErigon"
 	case NodeStarted:
 		return "NodeStarted"
 	case NodeRestarting:
@@ -68,7 +84,49 @@ func CurrentStateString() string {
 
 // UpdateState updates the current state and writes it to disk.
 func UpdateState(newState AppStateEnum) error {
-	CurrentState = newState
+	CurrentState.State = newState
+	return writeStateToFile(CurrentState)
+}
+
+// UpdateChain updates the current state and writes it to disk.
+func UpdateChain(isTestnet bool) error {
+	CurrentState.IsTestnet = isTestnet
+	return writeStateToFile(CurrentState)
+}
+
+// ConvertPrivateKeyToBase64 takes a private key as a hex string and converts it to a Base64 string.
+func ConvertPrivateKeyToBase64(privateKeyHex string) (string, error) {
+	// Convert the hex string to a byte array
+	privateKeyBytes, err := hex.DecodeString(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("error decoding hex string: %v", err)
+	}
+
+	// Encode the byte array to a Base64 string
+	base64String := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	return base64String, nil
+}
+
+// UpdateAccount updates the current state and writes it to disk.
+func UpdateAccount(privateKey string, publicKey string) error {
+	CurrentState.Wallet.Address = publicKey
+	key, err := ConvertPrivateKeyToBase64(privateKey)
+	if err != nil {
+		return err
+	}
+	CurrentState.Wallet.PK = key
+	return writeStateToFile(CurrentState)
+}
+
+// UpdateSnapshotDownloaded updates the current state and writes it to disk.
+func UpdateSnapshotDownloaded(downloaded bool) error {
+	CurrentState.HeimdallSnapshotDownloaded = downloaded
+	return writeStateToFile(CurrentState)
+}
+
+// UpdateSnapshotDownloaded updates the current state and writes it to disk.
+func UpdateRPC(rpc string) error {
+	CurrentState.RPC = rpc
 	return writeStateToFile(CurrentState)
 }
 
@@ -90,7 +148,7 @@ func LoadState() error {
 		return err
 	}
 
-	var state AppStateEnum
+	var state AppState
 	err = json.Unmarshal(stateJSON, &state)
 	if err != nil {
 		return err
@@ -101,7 +159,7 @@ func LoadState() error {
 }
 
 // writeStateToFile writes the current state to a file in JSON format.
-func writeStateToFile(state AppStateEnum) error {
+func writeStateToFile(state AppState) error {
 	stateJSON, err := json.Marshal(state)
 	if err != nil {
 		return err

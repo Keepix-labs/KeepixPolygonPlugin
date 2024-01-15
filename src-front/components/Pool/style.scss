@@ -1,0 +1,23 @@
+.pool {
+  position: relative;
+  height: 450px;
+  width: 450px;
+  float: left;
+  margin: 5px;
+
+  .details {
+      display: flex;
+      align-items: start;
+      flex-direction: column;
+      label {
+        padding: 0; /* Remove padding */
+        margin: 5px 0; /* Add a small margin for separation, adjust as needed */
+        /* Add any additional styling for the labels here */
+      }
+      img {
+        height: 8vh;
+        position: absolute;
+        right: 0;
+      }
+  }
+}

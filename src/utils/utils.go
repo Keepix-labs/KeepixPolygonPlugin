@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -142,4 +144,31 @@ func IsValidURL(toTest string) bool {
 
 func WriteError(err string) {
 	fmt.Fprintln(os.Stderr, err)
+}
+
+// IPResponse represents the structure of the response from httpbin.org
+type IPResponse struct {
+	Origin string `json:"origin"`
+}
+
+// GetExternalIP fetches the external IP address of the current machine
+func GetExternalIP() (string, error) {
+	response, err := http.Get("https://httpbin.org/ip")
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var ipResp IPResponse
+	err = json.Unmarshal(body, &ipResp)
+	if err != nil {
+		return "", err
+	}
+
+	return ipResp.Origin, nil
 }

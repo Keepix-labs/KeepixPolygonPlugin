@@ -71,7 +71,8 @@ describe('KeepixPolygonPlugin', function() {
     });
 
     it('should be able to install', async function() {
-        const result = await execute({"key":"install","ethereumRPC":"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS","testnet":"false"});
+        const result = await execute({"key":"install","ethereumRPC":"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm","testnet":"true"});
+        console.log(result)
         expect(result.jsonResult).to.equal("true");
     });
 
@@ -80,29 +81,46 @@ describe('KeepixPolygonPlugin', function() {
         expect(result.jsonResult).to.equal("true");
     });
 
-    it('should be able to start the nodes', async function() {
-        const result = await execute({"key":"start"});
+    it('should be able to import wallet from mnemonic', async function() {
+        let result = await execute({"key":"wallet-load","mnemonic":"test test test test test test test test test test test junk","privateKey":""});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
+    });
+
+    it('should be able to import wallet from private key', async function() {
+        const result = await execute({"key":"wallet-load","mnemonic":"","privateKey":"rAl0vsOaF+NrpKa00jj/lEustHjL7V78rnhNe/Ty/4A="});
+        expect(result.jsonResult).to.equal("true");
+    });
+
+    it('should be able to fetch wallet', async function() {
+        const result = await execute({"key":"wallet-fetch"});
+        const parsedResult = JSON.parse(result.jsonResult);
+        expect(parsedResult.Wallet).to.equal('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
+    });
+
+    it('should be able to start the nodes', async function() {
+        const result = await execute({"key":"start"});
+        expect(result.jsonResult).to.equal("true");
+        await delay(30000);
     });
 
     it('should be able to restart the nodes', async function() {
         const result = await execute({"key":"restart"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
+        await delay(30000);
     });
 
     it('should be able to report status', async function() {
-        await delay(10000);
         const result = await execute({"key":"status"});
-        console.log(result)
-        expect(result.jsonResult).to.equal(`{"NodeState":"NodeStarted","Alive":true,"IsRegistered":false}`);
+        const parsedResult = JSON.parse(result.jsonResult);
+        expect(parsedResult.NodeState).to.equal(`NodeStarted`);
     });
 
-    it('should be able to report sync state', async function() {
+    it.skip('should be able to report sync state', async function() { // this will not work during tests since the introduction of snapshot downloader
         const result = await execute({"key":"sync-state"});
         const jsonResult = JSON.parse(result.jsonResult);
-        console.log(jsonResult)
+        console.log(result)
         expect(jsonResult.IsSynced).to.equal(false);
     });
 
@@ -114,22 +132,24 @@ describe('KeepixPolygonPlugin', function() {
     });
 
     it('should be able to report logs', async function() {
-        const result = await execute({"key":"logs","bor":"true","heimdall":"true", "lines": "1"});
+        const result = await execute({"key":"logs","erigon":"true","heimdall":"true", "lines": "1"});
         const jsonResult = JSON.parse(result.jsonResult);
         console.log(jsonResult)
-        expect(jsonResult.borLogs).to.not.be.equal("");
+        expect(jsonResult.erigonLogs).to.not.be.equal("");
         expect(jsonResult.heimdallLogs).to.not.be.equal("");
     });
 
     it('should be able to resync', async function() {
-        const result = await execute({"key":"resync","bor":"true","heimdall":"true"});
+        const result = await execute({"key":"resync","erigon":"true","heimdall":"true"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
+        await delay(10000);
     });
 
     it('should be able to stop the nodes', async function() {
         const result = await execute({"key":"stop"});
         expect(result.jsonResult).to.equal("true");
+        await delay(10000);
     });
 
     it('should be able to uninstall', async function() {

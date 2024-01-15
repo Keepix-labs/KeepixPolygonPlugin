@@ -9,13 +9,13 @@ export const getPluginStatus = async () =>
     parser: (data: any) => { return data.result; } 
   });
 
-export const getPluginWallet = async () => { return {data: {Wallet: ""}} };
-  // request<any>({
-  //   url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/wallet-fetch`,
-  //   method: 'GET',
-  //   name: "getPluginWallet",
-  //   parser: (data: any) => { return JSON.parse(data.result); } 
-  // });
+export const getPluginWallet = async () =>
+  request<any>({
+    url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/wallet-fetch`,
+    method: 'GET',
+    name: "getPluginWallet",
+    parser: (data: any) => { return data.result; } 
+  });
 
 export const getPluginSyncProgress = async () => 
   request<any>({
@@ -25,13 +25,13 @@ export const getPluginSyncProgress = async () =>
     parser: (data: any) => { return data.result; } 
   });
 
-// export const getPluginMiniPools = async () => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/minipool-fetch`,
-//     method: 'GET',
-//     name: "getPluginMiniPools",
-//     parser: (data: any) => { return JSON.parse(data.result); } 
-//   });
+export const getMinipools = async () => 
+  request<any>({
+    url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/pools-fetch`,
+    method: 'GET',
+    name: "getMinipools",
+    parser: (data: any) => { return data.result; }
+  });
 
 export const getPluginNodeInformation = async () => 
   request<any>({
@@ -50,58 +50,32 @@ export const getPluginNodeInformation = async () =>
     parser: (data: any) => { return { result: data.result, stdOut: data.stdOut }; } 
   });
 
-// export const postPluginCreateMiniPool = async (body: any) => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/create-pool`,
-//     method: 'POST',
-//     name: "postPluginCreateMiniPool",
-//     body: body,
-//     parser: (data: any) => { return { result: JSON.parse(data.result), stdOut: data.stdOut }; } 
-//   });
+export const postPluginStake = async (amount: any, address: string) => 
+  request<any>({
+    url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/stake`,
+    method: 'POST',
+    name: "postPluginStake",
+    body: { amount: amount, address: address },
+    parser: (data: any) => { return { result: data.result, stdOut: data.stdOut }; } 
+  });
 
-// export const postPluginMiniPoolExit = async (body: any) => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/exit-minipool`,
-//     method: 'POST',
-//     name: "postPluginMiniPoolExit",
-//     body: body,
-//     parser: (data: any) => { return { result: JSON.parse(data.result), stdOut: data.stdOut }; } 
-//   });
+export const postPluginUnstake = async (amount: any, address: string) => 
+  request<any>({
+    url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/unstake`,
+    method: 'POST',
+    name: "postPluginUnstake",
+    body: { amount: amount, address: address },
+    parser: (data: any) => { return { result: data.result, stdOut: data.stdOut }; } 
+  });
 
-// export const postPluginMiniPoolClose = async (body: any) => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/close-minipool`,
-//     method: 'POST',
-//     name: "postPluginMiniPoolClose",
-//     body: body,
-//     parser: (data: any) => { return { result: JSON.parse(data.result), stdOut: data.stdOut }; } 
-//   });
-
-// export const postPluginStakeRpl = async (amount: any) => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/stake-rpl`,
-//     method: 'POST',
-//     name: "postPluginStakeRpl",
-//     body: { Amount: amount },
-//     parser: (data: any) => { return { result: JSON.parse(data.result), stdOut: data.stdOut }; } 
-//   });
-
-// export const postPluginUnStakeRpl = async (amount: any) => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/unstake-rpl`,
-//     method: 'POST',
-//     name: "postPluginUnStakeRpl",
-//     body: { Amount: amount },
-//     parser: (data: any) => { return { result: JSON.parse(data.result), stdOut: data.stdOut }; } 
-//   });
-
-// export const getMinipoolMinimumStakeRplAmounts = async () => 
-//   request<any>({
-//     url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/fetch-minimum-pool-stake-rpl-amounts`,
-//     method: 'GET',
-//     name: "getMinipoolMinimumStakeRplAmounts",
-//     parser: (data: any) => { return JSON.parse(data.result); } 
-//   });
+export const postPluginReward = async (address: string) => 
+request<any>({
+  url: `${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/reward`,
+  method: 'POST',
+  name: "postPluginReward",
+  body: { address: address },
+  parser: (data: any) => { return { result: data.result, stdOut: data.stdOut }; } 
+});
 
 // Functions
 async function request<T>(options: any) {

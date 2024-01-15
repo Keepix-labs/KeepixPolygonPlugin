@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -135,7 +136,7 @@ func RemoveHostFolderUsingContainer(containerPath, hostPath string, folders stri
 
 	// Define configuration for a temporary container
 	tempContainerConfig := container.Config{
-		Image: "alpine",
+		Image: "alpine:latest",
 		Cmd:   []string{"sh", "-c", "rm -rf " + folders},
 	}
 
@@ -204,7 +205,7 @@ func StopContainerByName(containerName string) error {
 		}
 	}
 	if foundContainerID == "" {
-		fmt.Printf("no container found with name %s", containerName)
+		//fmt.Printf("no container found with name %s", containerName)
 		return nil // not an error
 	}
 
@@ -265,8 +266,13 @@ func PullImage(imageName string) error {
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(os.Stdout, out)
-	return err
+	defer out.Close()
+
+	_, err = io.Copy(ioutil.Discard, out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // RemoveImage removes a Docker image and any containers created from it.

@@ -15,21 +15,23 @@ func installedTask(args map[string]string) string {
 }
 
 type NodeStatus struct {
-	NodeState    string `json:"NodeState"`
-	Alive        bool   `json:"Alive"`
-	IsRegistered bool   `json:"IsRegistered"`
+	NodeState string `json:"NodeState"`
+	Alive     bool   `json:"Alive"`
 }
 
 // returns plugins status
 func statusTask(args map[string]string) string {
 	_, err := utils.GetHeimdallNodeStatus()
-	_, err2 := utils.GetBorNodeStatus()
+	_, err2 := utils.GetErigonSyncingStatus()
+
+	if !appstate.CurrentState.HeimdallSnapshotDownloaded {
+		_, err = utils.SnapshotProgress()
+	}
 
 	// Create an instance of NodeStatus
 	status := NodeStatus{
-		NodeState:    appstate.CurrentStateString(),
-		Alive:        err == nil && err2 == nil,
-		IsRegistered: false,
+		NodeState: appstate.CurrentStateString(),
+		Alive:     err == nil && err2 == nil,
 	}
 
 	// Serialize the struct to JSON
@@ -44,11 +46,11 @@ func statusTask(args map[string]string) string {
 
 type LogsResponse struct {
 	HeimdallLogs string `json:"heimdallLogs"`
-	BorLogs      string `json:"borLogs"`
+	ErigonLogs   string `json:"erigonLogs"`
 }
 
 func logsTask(args map[string]string) string {
-	bogLogs := args["bor"]
+	erigonLogs := args["erigon"]
 	heimdallLogs := args["heimdall"]
 	linesAmount, err := strconv.Atoi(args["lines"])
 	if err != nil {
@@ -57,16 +59,16 @@ func logsTask(args map[string]string) string {
 	}
 
 	var logsResponse LogsResponse = LogsResponse{}
-	if bogLogs != "true" && heimdallLogs != "true" {
+	if erigonLogs != "true" && heimdallLogs != "true" {
 		return RESULT_SUCCESS
 	}
-	if bogLogs == "true" {
-		output, err := utils.FetchContainerLogs("bor", linesAmount)
+	if erigonLogs == "true" {
+		output, err := utils.FetchContainerLogs("erigon", linesAmount)
 		if err != nil {
 			utils.WriteError("Error getting logs:" + err.Error())
 			return RESULT_ERROR
 		}
-		logsResponse.BorLogs = output
+		logsResponse.ErigonLogs = output
 	}
 	if heimdallLogs == "true" {
 		output, err := utils.FetchContainerLogs("heimdall", linesAmount)
@@ -89,22 +91,14 @@ func logsTask(args map[string]string) string {
 
 type SyncState struct {
 	IsSynced                bool    `json:"IsSynced"`
-	BorSyncProgress         float32 `json:"borSyncProgress"`
+	ErigonSyncProgress      float32 `json:"erigonSyncProgress"`
 	HeimdallSyncProgress    float32 `json:"heimdallSyncProgress"`
-	BorStepDescription      string  `json:"borStepDescription"`
+	ErigonStepDescription   string  `json:"erigonStepDescription"`
 	HeimdallStepDescription string  `json:"heimdallStepDescription"`
 }
 
 func getChainTask(args map[string]string) string {
-	chain, err := utils.GetBorChainID()
-	if err != nil {
-		utils.WriteError("Error getting chain:" + err.Error())
-		return RESULT_ERROR
-	}
-
-	if chain == 0 {
-		return RESULT_ERROR
-	} else if chain == 137 {
+	if !appstate.CurrentState.IsTestnet {
 		return "mainnet"
 	} else {
 		return "testnet"
@@ -112,62 +106,58 @@ func getChainTask(args map[string]string) string {
 }
 
 func syncStateTask(args map[string]string) string {
-	heimdallState, err := utils.GetHeimdallNodeStatus()
+
+	erigonState, err := utils.GetErigonSyncingStatus()
 	if err != nil {
-		utils.WriteError("Error getting heimdall node status:" + err.Error())
+		utils.WriteError("Error getting erigon node status:" + err.Error())
 		return RESULT_ERROR
 	}
 
-	borState, err := utils.GetBorNodeStatus()
-	if err != nil {
-		utils.WriteError("Error getting bor node status:" + err.Error())
-		return RESULT_ERROR
-	}
-
-	var borStepDescription string
 	var heimdallStepDescription string
-
 	var progress float32
-	if !borState.CatchingUp {
-		progress = 100
-		borStepDescription = "Synced"
-	} else {
-		highestBlock, _ := strconv.ParseInt(borState.Result.HighestBlock, 16, 64)
-		currentBlock, _ := strconv.ParseInt(borState.Result.CurrentBlock, 16, 64)
+	var heimdallSynced = false
 
-		if highestBlock == 0 {
-			progress = 0
-			borStepDescription = "Waiting for heimdall sync"
+	if appstate.CurrentState.HeimdallSnapshotDownloaded {
+		heimdallState, err := utils.GetHeimdallNodeStatus()
+		if err != nil {
+			utils.WriteError("Error getting heimdall node status:" + err.Error())
+			return RESULT_ERROR
+		}
+
+		blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
+		currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
+
+		if !heimdallState.Result.SyncInfo.CatchingUp {
+			progress = 100
+			heimdallStepDescription = "Synced"
 		} else {
-			progress = float32(currentBlock) / float32(highestBlock) * 100
-			borStepDescription = "Syncing"
+			progress = float32(blockHeight) / float32(currentBlockHeight) * 100
+			heimdallStepDescription = "Syncing"
+		}
+
+		if blockHeight == 0 {
+			heimdallStepDescription = "Waiting for peers"
+		}
+
+		heimdallSynced = !heimdallState.Result.SyncInfo.CatchingUp
+	} else {
+		heimdallStepDescription = "Downloading snapshot"
+
+		progress, err = utils.SnapshotProgress()
+		if err != nil {
+			utils.WriteError("Error getting snapshot progress:" + err.Error())
+			return RESULT_ERROR
+		}
+		if progress == 100 {
+			heimdallStepDescription = "Snapshot downloaded, restart Heimdall"
 		}
 	}
 
-	blockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.LatestBlockHeight)
-	currentBlockHeight, _ := strconv.Atoi(heimdallState.Result.SyncInfo.CurrentBlockHeight)
-
-	var progress2 float32
-	if !heimdallState.Result.SyncInfo.CatchingUp {
-		progress2 = 100
-		heimdallStepDescription = "Synced"
-	} else {
-		progress2 = float32(blockHeight) / float32(currentBlockHeight) * 100
-		heimdallStepDescription = "Syncing"
-		// override bor status for a clearer view of what's happening
-		borStepDescription = "Waiting for heimdall sync"
-		progress = 0
-	}
-
-	if blockHeight == 0 {
-		heimdallStepDescription = "Waiting for peers"
-	}
-
 	status := &SyncState{
-		IsSynced:                !heimdallState.Result.SyncInfo.CatchingUp && !borState.CatchingUp,
-		BorSyncProgress:         progress,
-		HeimdallSyncProgress:    progress2,
-		BorStepDescription:      borStepDescription,
+		IsSynced:                heimdallSynced && erigonState.Stage == "Synced",
+		ErigonSyncProgress:      erigonState.Progress,
+		HeimdallSyncProgress:    progress,
+		ErigonStepDescription:   erigonState.Stage,
 		HeimdallStepDescription: heimdallStepDescription,
 	}
 

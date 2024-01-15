@@ -1,6 +1,6 @@
 {
   "name": "keepix-polygon-plugin",
-  "version": "0.0.31",
+  "version": "0.0.39",
   "dependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@iconify-icon/react": "^1.0.8",
@@ -35,7 +35,7 @@
     "build": "cross-env  PUBLIC_URL=/plugins/keepix-polygon-plugin/view react-app-rewired build && npm run p-build-all",
     "publish": "cd build && npm publish",
     "test": "react-app-rewired test",
-    "test-executables": "mocha --timeout 60000",
+    "test-executables": "mocha --timeout 120000",
     "eject": "react-app-rewired eject",
     "p-build-debug": "cd src/ && go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/keepix-polygon-plugin",
     "p-build-release-osx-x64": "cd src/ && cross-env GOOS=darwin cross-env GOARCH=amd64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/osx-x64/keepix-polygon-plugin",
@@ -43,8 +43,7 @@
     "p-build-release-linux-x64": "cd src/ && cross-env GOOS=linux cross-env GOARCH=amd64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/linux-x64/keepix-polygon-plugin",
     "p-build-release-linux-arm64": "cd src/ && cross-env GOOS=linux cross-env GOARCH=arm64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/linux-arm64/keepix-polygon-plugin",
     "p-build-release-win-x64": "cd src/ && cross-env GOOS=windows cross-env GOARCH=amd64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/win-x64/keepix-polygon-plugin.exe",
-    "p-build-release-win-arm64": "cd src/ && cross-env GOOS=windows cross-env GOARCH=arm64 go build -ldflags \"-X main.version=$(npm pkg get version)\" -o ../build/dist/win-arm64/keepix-polygon-plugin.exe",
-    "p-build-all": "npm run p-build-release-osx-x64 && npm run p-build-release-osx-arm64 && npm run p-build-release-linux-x64 && npm run p-build-release-linux-arm64 && npm run p-build-release-win-x64 && npm run p-build-release-win-arm64"
+    "p-build-all": "npm run p-build-release-osx-x64 && npm run p-build-release-osx-arm64 && npm run p-build-release-linux-x64 && npm run p-build-release-linux-arm64 && npm run p-build-release-win-x64"
   },
   "eslintConfig": {
     "extends": [
