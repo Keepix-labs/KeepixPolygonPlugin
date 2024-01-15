@@ -4,6 +4,7 @@ import (
 	"KeepixPlugin/appstate"
 	"context"
 	"crypto/ecdsa"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -309,4 +310,17 @@ func (bc *BlockchainClient) WaitForTransactionReceipt(txHash common.Hash) (*type
 			return nil, err
 		}
 	}
+}
+
+// ConvertBase64ToPrivateKey takes a Base64 string and converts it back to a private key hex string.
+func ConvertBase64ToPrivateKey(base64String string) (string, error) {
+	// Decode the Base64 string to a byte array
+	bytes, err := base64.StdEncoding.DecodeString(base64String)
+	if err != nil {
+		return "", fmt.Errorf("error decoding Base64 string: %v", err)
+	}
+
+	// Convert the byte array to a hex string
+	hexString := hex.EncodeToString(bytes)
+	return hexString, nil
 }

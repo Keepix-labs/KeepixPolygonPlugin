@@ -1,7 +1,10 @@
 package appstate
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -91,10 +94,27 @@ func UpdateChain(isTestnet bool) error {
 	return writeStateToFile(CurrentState)
 }
 
+// ConvertPrivateKeyToBase64 takes a private key as a hex string and converts it to a Base64 string.
+func ConvertPrivateKeyToBase64(privateKeyHex string) (string, error) {
+	// Convert the hex string to a byte array
+	privateKeyBytes, err := hex.DecodeString(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("error decoding hex string: %v", err)
+	}
+
+	// Encode the byte array to a Base64 string
+	base64String := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	return base64String, nil
+}
+
 // UpdateAccount updates the current state and writes it to disk.
 func UpdateAccount(privateKey string, publicKey string) error {
 	CurrentState.Wallet.Address = publicKey
-	CurrentState.Wallet.PK = privateKey
+	key, err := ConvertPrivateKeyToBase64(privateKey)
+	if err != nil {
+		return err
+	}
+	CurrentState.Wallet.PK = key
 	return writeStateToFile(CurrentState)
 }
 

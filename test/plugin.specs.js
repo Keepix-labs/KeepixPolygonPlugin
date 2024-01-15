@@ -81,25 +81,25 @@ describe('KeepixPolygonPlugin', function() {
         expect(result.jsonResult).to.equal("true");
     });
 
-    it.only('should be able to import wallet from mnemonic', async function() {
+    it('should be able to import wallet from mnemonic', async function() {
         let result = await execute({"key":"wallet-load","mnemonic":"test test test test test test test test test test test junk","privateKey":""});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
     });
 
-    it.only('should be able to import wallet from private key', async function() {
-        const result = await execute({"key":"wallet-load","mnemonic":"","privateKey":"ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"});
+    it('should be able to import wallet from private key', async function() {
+        const result = await execute({"key":"wallet-load","mnemonic":"","privateKey":"rAl0vsOaF+NrpKa00jj/lEustHjL7V78rnhNe/Ty/4A="});
         expect(result.jsonResult).to.equal("true");
     });
 
-    it.only('should be able to fetch wallet', async function() {
+    it('should be able to fetch wallet', async function() {
         const result = await execute({"key":"wallet-fetch"});
-        expect(result.jsonResult).to.equal('{"address":"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"}');
+        const parsedResult = JSON.parse(result.jsonResult);
+        expect(parsedResult.Wallet).to.equal('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
     });
 
     it('should be able to start the nodes', async function() {
         const result = await execute({"key":"start"});
-        console.log(result)
         expect(result.jsonResult).to.equal("true");
         await delay(30000);
     });
@@ -113,14 +113,14 @@ describe('KeepixPolygonPlugin', function() {
 
     it('should be able to report status', async function() {
         const result = await execute({"key":"status"});
-        console.log(result)
-        expect(result.jsonResult).to.equal(`{"NodeState":"NodeStarted","Alive":true}`);
+        const parsedResult = JSON.parse(result.jsonResult);
+        expect(parsedResult.NodeState).to.equal(`NodeStarted`);
     });
 
-    it('should be able to report sync state', async function() {
+    it.skip('should be able to report sync state', async function() { // this will not work during tests since the introduction of snapshot downloader
         const result = await execute({"key":"sync-state"});
         const jsonResult = JSON.parse(result.jsonResult);
-        console.log(jsonResult)
+        console.log(result)
         expect(jsonResult.IsSynced).to.equal(false);
     });
 

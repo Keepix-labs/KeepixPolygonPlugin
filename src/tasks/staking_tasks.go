@@ -321,7 +321,13 @@ func unstakeTask(args map[string]string) string {
 		return RESULT_ERROR
 	}
 
-	hash, err := client.ExecuteWriteFunction(appstate.CurrentState.Wallet.PK, address, validatorABI, "sellVoucher_new", 300000, bigIntAmount, bigIntAmount)
+	privateKey, err := utils.ConvertBase64ToPrivateKey(appstate.CurrentState.Wallet.PK)
+	if err != nil {
+		utils.WriteError("Error converting private key:" + err.Error())
+		return RESULT_ERROR
+	}
+
+	hash, err := client.ExecuteWriteFunction(privateKey, address, validatorABI, "sellVoucher_new", 300000, bigIntAmount, bigIntAmount)
 	if err != nil {
 		utils.WriteError("Error executing unstake:" + err.Error())
 		return RESULT_ERROR
@@ -377,7 +383,13 @@ func stakeTask(args map[string]string) string {
 		maticAddress = TESTNET_MATIC_ADDR
 	}
 
-	hash, err := client.ExecuteWriteFunction(appstate.CurrentState.Wallet.PK, maticAddress, tokenABI, "approve", 80000, common.HexToAddress(address), bigIntAmount)
+	privateKey, err := utils.ConvertBase64ToPrivateKey(appstate.CurrentState.Wallet.PK)
+	if err != nil {
+		utils.WriteError("Error converting private key:" + err.Error())
+		return RESULT_ERROR
+	}
+
+	hash, err := client.ExecuteWriteFunction(privateKey, maticAddress, tokenABI, "approve", 80000, common.HexToAddress(address), bigIntAmount)
 	if err != nil {
 		utils.WriteError("Error executing approval:" + err.Error())
 		return RESULT_ERROR
@@ -392,7 +404,7 @@ func stakeTask(args map[string]string) string {
 		return RESULT_ERROR
 	}
 
-	hash, err = client.ExecuteWriteFunction(appstate.CurrentState.Wallet.PK, address, validatorABI, "buyVoucher", 300000, bigIntAmount, zero)
+	hash, err = client.ExecuteWriteFunction(privateKey, address, validatorABI, "buyVoucher", 300000, bigIntAmount, zero)
 	if err != nil {
 		utils.WriteError("Error executing stake:" + err.Error())
 		return RESULT_ERROR
@@ -433,7 +445,13 @@ func rewardTask(args map[string]string) string {
 		return RESULT_ERROR
 	}
 
-	hash, err := client.ExecuteWriteFunction(appstate.CurrentState.Wallet.PK, address, validatorABI, "withdrawRewards", 180000)
+	privateKey, err := utils.ConvertBase64ToPrivateKey(appstate.CurrentState.Wallet.PK)
+	if err != nil {
+		utils.WriteError("Error converting private key:" + err.Error())
+		return RESULT_ERROR
+	}
+
+	hash, err := client.ExecuteWriteFunction(privateKey, address, validatorABI, "withdrawRewards", 180000)
 	if err != nil {
 		utils.WriteError("Error executing rewards:" + err.Error())
 		return RESULT_ERROR

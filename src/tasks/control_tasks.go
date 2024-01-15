@@ -103,6 +103,7 @@ func stopTask(args map[string]string) string {
 	err1 := utils.StopContainerByName("heimdall")
 	err2 := utils.StopContainerByName("heimdall-rest")
 	err3 := utils.StopContainerByName("erigon")
+	err4 := utils.StopContainerByName("heimdall-snapshot-downloader")
 
 	if err1 != nil {
 		utils.WriteError("Error stopping heimdall:" + err1.Error())
@@ -113,8 +114,11 @@ func stopTask(args map[string]string) string {
 	if err3 != nil {
 		utils.WriteError("Error stopping erigon:" + err3.Error())
 	}
+	if err4 != nil {
+		utils.WriteError("Error stopping erigon snapshot downloader:" + err4.Error())
+	}
 
-	if err1 != nil || err2 != nil || err3 != nil {
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return RESULT_ERROR
 	}
 	fmt.Println("Successfully stoped node")
