@@ -28,7 +28,7 @@ jobs:
       - name: Install and Build
         run: |
           npm install
-          npm run build
+          npm run p-build-all
 
       # Compress each folder in /build/dist
       - name: Compress Executables
