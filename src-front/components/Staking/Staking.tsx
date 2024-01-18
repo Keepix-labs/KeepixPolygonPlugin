@@ -77,13 +77,6 @@ export const Staking = ({ wallet, ethBalance, maticBalance, backFn }: any) => {
 
     return (<>
         <div className="card card-default">
-            <div className="home-row-full" >
-                <Btn
-                status="gray-black"
-                color="white"
-                onClick={async () => { backFn(); }}
-                >Back</Btn>
-            </div>
             <header className="AppBase-header">
                 <div className="AppBase-headerIcon icon-app">
                 <Icon icon="ion:rocket" />

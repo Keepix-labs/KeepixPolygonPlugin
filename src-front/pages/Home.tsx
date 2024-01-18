@@ -15,6 +15,7 @@ import FAQ from "../components/Faq/Faq";
 import Progress from "../components/Progress/Progress";
 import { Node } from "../components/Node/Node";
 import { Staking } from "../components/Staking/Staking";
+import { Tabs, Tab } from "../components/Tabs/Tabs";
 
 
 const faqSyncProgress: any[] = [
@@ -74,96 +75,100 @@ export default function HomePage() {
       {statusQuery?.data && statusQuery.data?.NodeState === 'NoState' && (
         <BannerAlert status="danger">Error with the Plugin "{statusQuery.data?.NodeState}" please Reinstall.</BannerAlert>
       )}
-      {statusQuery?.data && canStart() && (
-        <BigLogo full={true}>
-          <Btn
-            status="warning"
-            onClick={async () => {
-              setLoading(true);
-              await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/start`);
-              setLoading(false);
-            }}
-          >Start</Btn>
-        </BigLogo>
-      )}
-      {statusQuery?.data
-        && statusQuery.data?.NodeState === 'NodeStarted'
-        && walletQuery.data?.Wallet === "" && (<>
-          setup wallet
-      </>)}
-
-      {statusQuery?.data
-        && !syncProgressQuery?.data
-        && statusQuery.data?.NodeState === 'NodeStarted'
-        /*&& walletQuery.data?.Wallet !== undefined*/ && (
-        <BigLoader title="Estimation: 1 to 10 minutes." label="Retrieving synchronization information" full={true}>
-          <Btn
-                status="danger"
-                onClick={async () => { await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/stop`) }}
-              >Stop</Btn>
-        </BigLoader>
-      )}
-
-      {statusQuery?.data
-        && syncProgressQuery?.data
-        && syncProgressQuery?.data?.IsSynced === false
-        && statusQuery.data?.NodeState === 'NodeStarted'
-        /*&& walletQuery.data?.Wallet !== undefined*/ && (
-        <BigLoader title="Estimation: 1 hour to several days." disableLabel={true} full={true}>
-          <div className="state-title">
-                <strong>{`Erigon Sync Progress:`}</strong>
-                <Progress percent={Number(syncProgressQuery?.data.erigonSyncProgress)} description={syncProgressQuery?.data.erigonStepDescription ?? ''}></Progress>
-                <strong>{`Heimdall Sync Progress:`}</strong>
-                <Progress percent={Number(syncProgressQuery?.data.heimdallSyncProgress)} description={syncProgressQuery?.data.heimdallStepDescription ?? ''}></Progress>
-                {/* <strong><Icon icon="svg-spinners:3-dots-scale" /></strong> */}
-          </div>
-          <FAQ questions={faqSyncProgress}></FAQ>
-          <div className="home-row-2" >
+      <Tabs>
+        <Tab label="Node management">
+          {statusQuery?.data && canStart() && (
+          <BigLogo full={true}>
             <Btn
-                status="danger"
-                onClick={async () => { await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/stop`) }}
-              >Stop</Btn>
+              status="warning"
+              onClick={async () => {
+                setLoading(true);
+                await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/start`);
+                setLoading(false);
+              }}
+            >Start</Btn>
+          </BigLogo>
+        )}
+        {statusQuery?.data
+          && statusQuery.data?.NodeState === 'NodeStarted'
+          && walletQuery.data?.Wallet === "" && (<>
+            setup wallet
+        </>)}
+
+        {statusQuery?.data
+          && !syncProgressQuery?.data
+          && statusQuery.data?.NodeState === 'NodeStarted'
+          /*&& walletQuery.data?.Wallet !== undefined*/ && (
+          <BigLoader title="Estimation: 1 to 10 minutes." label="Retrieving synchronization information" full={true}>
             <Btn
-                status="danger"
-                onClick={async () => { await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/restart`) }}
-              >Restart</Btn>
-          </div>
-          <div className="home-row-2" >
+                  status="danger"
+                  onClick={async () => { await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/stop`) }}
+                >Stop</Btn>
+          </BigLoader>
+        )}
+
+        {statusQuery?.data
+          && syncProgressQuery?.data
+          && syncProgressQuery?.data?.IsSynced === false
+          && statusQuery.data?.NodeState === 'NodeStarted'
+          /*&& walletQuery.data?.Wallet !== undefined*/ && (
+          <BigLoader title="Estimation: 1 hour to several days." disableLabel={true} full={true}>
+            <div className="state-title">
+                  <strong>{`Erigon Sync Progress:`}</strong>
+                  <Progress percent={Number(syncProgressQuery?.data.erigonSyncProgress)} description={syncProgressQuery?.data.erigonStepDescription ?? ''}></Progress>
+                  <strong>{`Heimdall Sync Progress:`}</strong>
+                  <Progress percent={Number(syncProgressQuery?.data.heimdallSyncProgress)} description={syncProgressQuery?.data.heimdallStepDescription ?? ''}></Progress>
+                  {/* <strong><Icon icon="svg-spinners:3-dots-scale" /></strong> */}
+            </div>
+            <FAQ questions={faqSyncProgress}></FAQ>
+            <div className="home-row-2" >
               <Btn
-                status="warning"
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const result = await postResync({ erigon: "true", heimdall: "false" });
-                    console.log('NICEE', result);
-                  } catch (e) {
-                    console.log(e);
-                  }
-                  setLoading(false);
-                }}
-              >Re-sync Erigon</Btn>
+                  status="danger"
+                  onClick={async () => { await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/stop`) }}
+                >Stop</Btn>
               <Btn
-                status="warning"
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const result = await postResync({ erigon: "false", heimdall: "true" });
-                    console.log('NICEE', result);
-                  } catch (e) {
-                    console.log(e);
-                  }
-                  setLoading(false);
-                }}
-              >Re-sync Heimdall</Btn>
-          </div>
-        </BigLoader>
-      )}
-      
-      {/* stake MATIC */}
-      {stakeDisplay && walletQuery.data && walletQuery.data?.Wallet !== ""
-        && (<>
-          <Staking wallet={walletQuery.data.Wallet} ethBalance={walletQuery.data.ethBalance} maticBalance={walletQuery.data.maticBalance} backFn={() => { setStakeDisplay(false); }}></Staking>
-      </>)}
+                  status="danger"
+                  onClick={async () => { await safeFetch(`${KEEPIX_API_URL}${PLUGIN_API_SUBPATH}/restart`) }}
+                >Restart</Btn>
+            </div>
+            <div className="home-row-2" >
+                <Btn
+                  status="warning"
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const result = await postResync({ erigon: "true", heimdall: "false" });
+                    } catch (e) {
+                      console.log(e);
+                    }
+                    setLoading(false);
+                  }}
+                >Re-sync Erigon</Btn>
+                <Btn
+                  status="warning"
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const result = await postResync({ erigon: "false", heimdall: "true" });
+                      console.log('NICEE', result);
+                    } catch (e) {
+                      console.log(e);
+                    }
+                    setLoading(false);
+                  }}
+                >Re-sync Heimdall</Btn>
+            </div>
+          </BigLoader>
+        )}
+        </Tab>
+        <Tab label="Delegate staking">
+          {/* stake MATIC */}
+          {stakeDisplay && walletQuery.data && walletQuery.data?.Wallet !== ""
+            && (<>
+              <Staking wallet={walletQuery.data.Wallet} ethBalance={walletQuery.data.ethBalance} maticBalance={walletQuery.data.maticBalance}></Staking>
+          </>)}
+        </Tab>
+      </Tabs>
       <Sprites></Sprites>
     </div>
   );

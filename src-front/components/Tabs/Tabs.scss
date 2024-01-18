@@ -1,0 +1,31 @@
+/* Tabs.scss */
+.tabs-container {
+    padding: 5px;
+
+    .tab-list {
+      list-style-type: none;
+      padding: 0;
+      display: flex;
+    }
+  
+    .tab-list-item {
+      margin-right: 10px;
+      padding: 15px 15px;
+      border: 3px solid #ccc;
+      border-bottom: none;
+      font-weight: 700;
+      border-radius: 5px;
+      cursor: pointer;
+  
+      &.active {
+        border: 3px solid orange;
+      border-bottom: none;
+      }
+    }
+  
+    .tab-content {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+  }
+  
