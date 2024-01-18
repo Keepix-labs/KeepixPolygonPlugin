@@ -7,7 +7,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/src",
-            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS\", \"testnet\":\"false\"}"]
+            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-mainnet.g.alchemy.com/v2/dWXI2QkWnTMsr7XAhlNzcD44m1qqemMS\", \"testnet\":\"false\", \"autostart\":\"false\", \"mnemonic\":\"test test test test test test test test test test test junk\"}"]
         },
         {
             "name": "Debug Install Testnet",
@@ -15,7 +15,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/src",
-            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm\", \"testnet\":\"true\"}"]
+            "args": ["{\"key\":\"install\",\"ethereumRPC\":\"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm\", \"testnet\":\"true\", \"autostart\":\"false\", \"mnemonic\":\"test test test test test test test test test test test junk\"}"]
         },
         {
             "name": "Debug Uninstall",

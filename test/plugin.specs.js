@@ -71,7 +71,7 @@ describe('KeepixPolygonPlugin', function() {
     });
 
     it('should be able to install', async function() {
-        const result = await execute({"key":"install","ethereumRPC":"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm","testnet":"true"});
+        const result = await execute({"key":"install","ethereumRPC":"https://eth-goerli.g.alchemy.com/v2/94XF2HyO7HcROFZuuBJ7EBxn1c68LdQm","testnet":"true","autostart":"false","mnemonic":"test test test test test test test test test test test junk"});
         console.log(result)
         expect(result.jsonResult).to.equal("true");
     });

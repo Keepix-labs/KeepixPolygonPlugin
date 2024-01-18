@@ -48,7 +48,7 @@ var TaskRequirements = map[string][]string{
 }
 
 var TarkArgs = map[string][]string{
-	"install":      {"ethereumRPC", "testnet"},
+	"install":      {"ethereumRPC", "testnet", "autostart", "mnemonic"},
 	"uninstall":    {},
 	"installed":    {},
 	"status":       {},

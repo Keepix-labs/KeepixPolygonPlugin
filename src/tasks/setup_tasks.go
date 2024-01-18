@@ -22,9 +22,16 @@ func installTask(args map[string]string) string {
 	}
 
 	isTestnet := args["testnet"] == "true"
+	isAutoStart := args["autostart"] == "true"
+	mnemonic := args["mnemonic"]
 
 	appstate.UpdateChain(isTestnet)
 	appstate.UpdateRPC(ethereumRPC)
+	err := utils.LoadAccountFromMnemonic(mnemonic)
+	if err != nil {
+		utils.WriteError("Error loading account from mnemonic:" + err.Error())
+		return RESULT_ERROR
+	}
 
 	storage, _ := appstate.GetStoragePath()
 	localPathHeimdall := path.Join(storage, "data", "heimdall")
@@ -144,6 +151,10 @@ func installTask(args map[string]string) string {
 		}
 		fmt.Println("Successfully installed node")
 		appstate.UpdateState(appstate.NodeInstalled)
+	}
+
+	if isAutoStart {
+		return startTask(args)
 	}
 
 	return RESULT_SUCCESS
